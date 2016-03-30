@@ -1,21 +1,14 @@
 import java.awt.Color;
+import java.io.*;
 
 
 
-
-public class State {
+public class State{
 	public static final int COLS = 10;
 	public static final int ROWS = 21;
 	public static final int N_PIECES = 7;
 
-	
-
 	public boolean lost = false;
-	
-	
-	
-
-	
 	public TLabel label;
 	
 	//current turn
@@ -32,8 +25,6 @@ public class State {
 	//number of next piece
 	protected int nextPiece;
 	
-	
-	
 	//all legal moves - first index is piece type - then a list of 2-length arrays
 	protected static int[][][] legalMoves = new int[N_PIECES][][];
 	
@@ -43,7 +34,7 @@ public class State {
 	
 	//possible orientations for a given piece type
 	protected static int[] pOrients = {1,2,4,4,4,2,2};
-	
+
 	//the next several arrays define the piece vocabulary in detail
 	//width of the pieces [piece ID][orientation]
 	protected static int[][] pWidth = {
@@ -109,7 +100,12 @@ public class State {
 		}
 	
 	}
-	
+
+	//constructor
+	public State() {
+		nextPiece = randomPiece();
+
+	}	
 	
 	public int[][] getField() {
 		return field;
@@ -156,11 +152,7 @@ public class State {
 		return turn;
 	}
 	
-	//constructor
-	public State() {
-		nextPiece = randomPiece();
-
-	}
+	
 
 	//random integer, returns 0-6
 	private int randomPiece() {
