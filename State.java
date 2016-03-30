@@ -156,21 +156,16 @@ public class State {
 		return turn;
 	}
 	
-	
-	
 	//constructor
 	public State() {
 		nextPiece = randomPiece();
 
 	}
-	
+
 	//random integer, returns 0-6
 	private int randomPiece() {
 		return (int)(Math.random()*N_PIECES);
 	}
-	
-
-
 	
 	//gives legal moves for 
 	public int[][] legalMoves() {

@@ -5,10 +5,15 @@ public class PlayerSkeleton {
 
 
 	/** We need to go through the field and fill it with new 1's at the 
-	    positions where the piece was dropped, then return the new field */
-	public int[][] dropPiece(int orient, int slot, int piece, int[][] currField){
+	    positions where the piece was dropped, this is the state we want to evaluate later */
+	public int[][] dropPiece(State state, int orient, int slot){
 
-		return currField;
+		// Problem: can't copy the old state. want to theoretically make a move
+
+		//State copiedState = new State();
+		//copiedState = state;
+		//copiedState.makeMove(orient, slot);
+		return state.getField();
 
 	}
 
@@ -34,7 +39,7 @@ public class PlayerSkeleton {
 	//implement this function to have a working system
 	public int pickMove(State s, int[][] legalMoves) {
 
-		int orient = 0, slot = 0, rowCounter = 0,piece;
+		int orient, slot, piece, rowCounter = 0;
 		TreeMap<Integer, Integer> scores = new TreeMap<Integer, Integer>();
 
 		//System.out.println("** Piece " + s.getNextPiece());
@@ -42,19 +47,17 @@ public class PlayerSkeleton {
 		// Go through every possible move
 		for(int i = 0; i < legalMoves.length; i++){
 
-			for(int j = 0; j < legalMoves[i].length; j++){
-
-				orient = legalMoves[i][j];
-				slot = legalMoves[i][j];
-
-			}
+			orient = legalMoves[i][0];
+			slot = legalMoves[i][1];
 
 			// Get the representation of the field when the piece is dropped and collisions calculated
-			int[][] newField = dropPiece(orient, slot, s.getNextPiece(), s.getField());
+			int[][] newField = dropPiece(s, orient, slot);
 			// How well does this state perform?
 			int score = calcScore(newField);
 			// We map this score to the current move (which is defined by row index)
 			scores.put(score, rowCounter++);
+
+			//System.out.println("****************");
 
 		}
 
