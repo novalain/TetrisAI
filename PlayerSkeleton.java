@@ -3,6 +3,27 @@ import java.util.*;
 
 public class PlayerSkeleton {
 
+	public int calcHeight(int[][] newField){
+		int height = 0;
+		int maxRow = newField.length;
+		int maxCol = newField[0].length;
+
+		//start in the top left of the board
+		//go down each colom untill you find the first peice
+		//add that to the height
+		for(int col = maxCol - 1; col >= 0; col--){
+			for(int row = maxRow - 1; row >=0; row--){
+				if(newField[row][col] == 1){
+					System.out.println("row, col "+ row +" "+ col);
+					height += (row + 1);
+					break;
+				}
+			}
+		}
+		//System.out.println(height);
+		return height;
+	}
+
 
 	/** We need to go through the field and fill it with new 1's at the 
 	    positions where the piece was dropped, this is the state we want to evaluate later */
@@ -29,7 +50,7 @@ public class PlayerSkeleton {
 		//int linesCompleted = calcLinesCompleted(newField) -- James
 		//int numHoles = calcNumHoles(newField) -- Michael
 		//int bumpiness = calcBumpiness(newField) -- Andres
-
+		int height = calcHeight(newField);
 		// Multiply weights with scores and add together...
 		return score;
 
