@@ -24,6 +24,27 @@ public class PlayerSkeleton {
 		return linesCleared;
 	}
 
+	/** Calculate bumpiness in our theoretical field */
+	public int calcBumpiness(int[][] newField){
+
+		int bumpiness = 0;
+		int lRowHeight = 0, rRowHeight = 0;
+		
+		for(int i = 0; i < State.COLS; i++ ){
+			for(int j = State.ROWS-1; j >= 0; j--){
+				if(newField[j][i] != 0) {
+					rRowHeight = j-1;
+					if(i!= 0) {
+						bumpiness += Math.abs(lRowHeight-rRowHeight);
+						lRowHeight = rRowHeight;
+					}
+					break;
+				}
+			}
+		}
+		return bumpiness;
+	}
+
 
 	public int calcHeight(int[][] newField){
 		int height = 0;
@@ -89,17 +110,17 @@ public class PlayerSkeleton {
 
 		// Our magic numbers :)
 		double a = -0.510066, b = 0.760666, c = -0.35663, d = -0.184473;
-		int score = 0;
 
-		int height = calcHeight(newField); //- Ryan
-		int linesCompleted = calcLinesCleared(newField);
-		//int numHoles = calcNumHoles(newField); //-- Michael
-		//int bumpiness = calcBumpiness(newField) -- Andres
+		double height = calcHeight(newField); //- Ryan
+		double linesCompleted = calcLinesCleared(newField);
+		//double numHoles = calcNumHoles(newField); //-- Michael
+		double bumpiness = calcBumpiness(newField); //-- Andres
+		
 		//int height = calcHeight(newField);
 		//Multiply weights with scores and add together...
 		//System.out.println(" lines completed of new field " + linesCompleted);
 
-		return height*a + linesCompleted*b;
+		return height*a + linesCompleted*b + bumpiness*d;
 	
 	}
 
@@ -124,7 +145,7 @@ public class PlayerSkeleton {
 		int orient, slot, piece, rowCounter = 0;
 		TreeMap<Double, Integer> scores = new TreeMap<Double, Integer>();
 
-		System.out.println("** Curr piece " + s.getNextPiece());
+		// System.out.println("** Curr piece " + s.getNextPiece());
 
 		// Go through every possible move
 		for(int i = 0; i < legalMoves.length; i++){
@@ -168,7 +189,7 @@ public class PlayerSkeleton {
 			s.draw();
 			s.drawNext(0,0);
 			try {
-				Thread.sleep(300);
+				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
