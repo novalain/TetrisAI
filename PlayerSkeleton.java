@@ -12,15 +12,17 @@ public class PlayerSkeleton {
 
 		for(int i = 0; i < State.ROWS; i++ ){
 
-			boolean isCompleted = true;
+			int isCompleted = 1;
 
 			for(int j = 0; j < State.COLS; j++){
-				if(newField[i][j] == 0)
-					isCompleted = false;
+				if(newField[i][j] == 0){
+					isCompleted = 0;
+					break;
+				}
 			}
-			if(isCompleted)
-				linesCleared++;
+			linesCleared += isCompleted;
 		}
+
 		return linesCleared;
 	}
 
@@ -142,11 +144,21 @@ public class PlayerSkeleton {
 	//implement this function to have a working system
 	public int pickMove(State s, int[][] legalMoves) {
 
-		int orient, slot, piece, rowCounter = 0;
-		TreeMap<Double, Integer> scores = new TreeMap<Double, Integer>();
+		int orient, slot;
+		// TreeMap<Double, Integer> scores = new TreeMap<Double, Integer>();
+		int moveKey = 0;
+		double highestScore = -10000;
 
 		// System.out.println("** Curr piece " + s.getNextPiece());
-
+		int pWidth[][] = s.getpWidth();
+		int pHeight[][] = s.getpHeight();
+		int pTop[][][] = s.getpTop();
+		int pBottom[][][] = s.getpBottom();
+		int top[] = s.getTop();
+		int field[][] = s.getField();
+		int nextPiece = s.getNextPiece();
+		int turnNumber = s.getTurnNumber();
+		
 		// Go through every possible move
 		for(int i = 0; i < legalMoves.length; i++){
 
@@ -154,15 +166,22 @@ public class PlayerSkeleton {
 			slot = legalMoves[i][1];
 			
 			// Perform deep copies, we don't want to mess up our original board
-			int[][] newField = deepCopy(s.getField());
-			int[] newTop = Arrays.copyOf(s.getTop(), s.getTop().length);
+			int[][] newField = deepCopy(field);
+			int[] newTop = Arrays.copyOf(top, top.length);
 
 			// Get the representation of the field when the piece is dropped and collisions calculated (newField will change and passed as a pointer)
-			makeTheoreticalMove(orient, slot, newField, s.getpWidth(), s.getpHeight(), s.getpTop(), s.getpBottom(), newTop, s.getNextPiece(), s.getTurnNumber());
+			makeTheoreticalMove(orient, slot, newField, pWidth, pHeight, pTop, pBottom, newTop, nextPiece, turnNumber);
 			// How well does this state perform?
 			double score = calcScore(newField);
 			// We map this score to the current move (which is defined by row index)
-			scores.put(score, rowCounter++);
+			
+			// scores.put(score, i);
+			
+			// System.out.printf("%f ", score);
+			if(score > highestScore){
+				moveKey = i;
+				highestScore = score;
+			}
 
 		}
 			
@@ -172,11 +191,12 @@ public class PlayerSkeleton {
 		  Integer value = entry.getValue();
 
 		  System.out.println(key + " => " + value);
+
 		}
+*/
+		// System.out.println("Making move " + scores.get(scores.lastKey()) + " " + scores.lastKey() + " " + moveKey + " " + highestScore);
 
-		System.out.println("Making move " + scores.get(scores.lastKey()));*/
-
-		return scores.get(scores.lastKey()); // We want the move associated to the highest score
+		return moveKey; // We want the move associated to the highest score
 	
 	}
 	
