@@ -34,16 +34,20 @@ public class PlayerSkeleton {
 		
 		for(int i = 0; i < State.COLS; i++ ){
 			for(int j = State.ROWS-1; j >= 0; j--){
-				if(newField[j][i] != 0) {
-					rRowHeight = j-1;
+				if(newField[j][i] != 0 || j == 0) {
+					rRowHeight = j+(newField[j][i] != 0 ? 1:0);
 					if(i!= 0) {
 						bumpiness += Math.abs(lRowHeight-rRowHeight);
-						lRowHeight = rRowHeight;
 					}
+					lRowHeight = rRowHeight;
+					// System.out.printf("%d, ", rRowHeight);
 					break;
 				}
 			}
+			
+			
 		}
+		// System.out.println();
 		return bumpiness;
 	}
 
@@ -90,7 +94,7 @@ public class PlayerSkeleton {
 		if(height+pHeight[nextPiece][orient] >= State.ROWS) {
 			System.out.println("We lost... This state sucks. Crash right now, better fix inc");
 		}
-		
+		try{
 		//for each column in the piece - fill in the appropriate blocks
 		for(int i = 0; i < pWidth[nextPiece][orient]; i++) {
 			//from bottom to top of brick
@@ -98,11 +102,23 @@ public class PlayerSkeleton {
 				field[h][i+slot] = turn;
 			}
 		}
+	}
+		catch(Exception e) {
+
+		}
 
 		//adjust top
 		for(int c = 0; c < pWidth[nextPiece][orient]; c++) {
 			top[slot+c] = height+pTop[nextPiece][orient][c];
 		}
+
+		// System.out.println("Move");
+		// 	for(int i = 0; i < State.ROWS; i++ ){
+		// 		for(int j = 0; j < State.COLS; j++){
+		// 			System.out.printf("%d ", field[i][j]);
+		// 		}
+		// 		System.out.println();
+		// 	}
 
 	}
 
@@ -117,7 +133,7 @@ public class PlayerSkeleton {
 		double linesCompleted = calcLinesCleared(newField);
 		//double numHoles = calcNumHoles(newField); //-- Michael
 		double bumpiness = calcBumpiness(newField); //-- Andres
-		
+		// System.out.println("Height " + height + "linesCompleted: " + linesCompleted + "bumpiness: " + bumpiness);
 		//int height = calcHeight(newField);
 		//Multiply weights with scores and add together...
 		//System.out.println(" lines completed of new field " + linesCompleted);
