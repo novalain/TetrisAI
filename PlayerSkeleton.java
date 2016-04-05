@@ -32,19 +32,15 @@ public class PlayerSkeleton {
 		int holes = 0;
 
 		for (int j = 0; j < State.COLS; j++){
-
 			// Boolean representation of if we have found the columns top yet
 			int top = 0;
-
 			// Do we need to check top row? If we're there we lost right?
 			for (int i = State.ROWS - 1; i >= 0; i--) {
-
 				// If the top filled square of the column is not yet found and we found a filled square 
 				if (newField[i][j] != 0 && top == 0) {
 					// Set top to found
 					top = 1;
 				}
-
 				// If the column's top has been found and we have found an empty square
 				if (top == 1 && newField[i][j] == 0) {
 					//It must be a hole, so increment
