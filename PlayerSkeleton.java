@@ -26,6 +26,36 @@ public class PlayerSkeleton {
 		return linesCleared;
 	}
 
+	/** Calculate number of holes in our theoretical field */
+	public int calcNumHoles(int[][] newField) {
+		
+		int holes = 0;
+
+		for (int j = 0; j < State.COLS; j++){
+
+			// Boolean representation of if we have found the columns top yet
+			int top = 0;
+
+			// Do we need to check top row? If we're there we lost right?
+			for (int i = State.ROWS - 1; i >= 0; i--) {
+
+				// If the top filled square of the column is not yet found and we found a filled square 
+				if (newField[i][j] != 0 && top == 0) {
+					// Set top to found
+					top = 1;
+				}
+
+				// If the column's top has been found and we have found an empty square
+				if (top == 1 && newField[i][j] == 0) {
+					//It must be a hole, so increment
+					holes += 1;
+				}
+			}
+		}
+
+		return holes;
+	}
+
 	/** Calculate bumpiness in our theoretical field */
 	public int calcBumpiness(int[][] newField){
 
@@ -131,14 +161,14 @@ public class PlayerSkeleton {
 
 		double height = calcHeight(newField); //- Ryan
 		double linesCompleted = calcLinesCleared(newField);
-		//double numHoles = calcNumHoles(newField); //-- Michael
+		double numHoles = calcNumHoles(newField); //-- Jimmay!!!!
 		double bumpiness = calcBumpiness(newField); //-- Andres
-		// System.out.println("Height " + height + "linesCompleted: " + linesCompleted + "bumpiness: " + bumpiness);
+		// System.out.println("Height " + height + " linesCompleted: " + linesCompleted + " bumpiness: " + bumpiness + " HOLES: " + numHoles);
 		//int height = calcHeight(newField);
 		//Multiply weights with scores and add together...
 		//System.out.println(" lines completed of new field " + linesCompleted);
 
-		return height*a + linesCompleted*b + bumpiness*d;
+		return height*a + linesCompleted*b + numHoles*c + bumpiness*d;
 	
 	}
 
@@ -223,9 +253,10 @@ public class PlayerSkeleton {
 		while(!s.hasLost()) {
 			s.makeMove(p.pickMove(s,s.legalMoves()));
 			s.draw();
+			// System.out.println()
 			s.drawNext(0,0);
 			try {
-				Thread.sleep(100);
+				Thread.sleep(30);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
