@@ -103,7 +103,7 @@ public class PlayerSkeleton {
 
 	Would rather copy a state and use function copiedState.makeMove() but can't make deep copy
 	since we cannot modify class State */
-	public void makeTheoreticalMove(final int orient, final int slot, int[][] field, final int[][] pWidth, final int[][] pHeight, 
+	public Boolean makeTheoreticalMove(final int orient, final int slot, int[][] field, final int[][] pWidth, final int[][] pHeight, 
 									final int[][][] pTop, final int[][][] pBottom, final int[] top, final int nextPiece, int turn) {
 		
 		turn++;
@@ -118,7 +118,8 @@ public class PlayerSkeleton {
 
 		//check if game ended
 		if(height+pHeight[nextPiece][orient] >= State.ROWS) {
-			System.out.println("We lost... This state sucks. Crash right now, better fix inc");
+			// System.out.println("We lost... This state sucks. Crash right now, better fix inc");
+			return false;
 		}
 		try{
 		//for each column in the piece - fill in the appropriate blocks
@@ -137,7 +138,7 @@ public class PlayerSkeleton {
 		for(int c = 0; c < pWidth[nextPiece][orient]; c++) {
 			top[slot+c] = height+pTop[nextPiece][orient][c];
 		}
-
+		return true;
 		// System.out.println("Move");
 		// 	for(int i = 0; i < State.ROWS; i++ ){
 		// 		for(int j = 0; j < State.COLS; j++){
@@ -150,15 +151,51 @@ public class PlayerSkeleton {
 
 	/** Calculate the new fields score based on our awesome 
 		heuristics */
-	public double calcScore(final int[][] newField){
+	public double calcScore(final int[][] newField, final int[] newTop){
 
 		// Our magic numbers :)
 		double a = -0.510066, b = 0.760666, c = -0.35663, d = -0.184473;
+		int maxRow = newField.length;
+		int maxCol = newField[0].length;
+		double height = 0;
+		double bumpiness = 0;
+		double linesCompleted = 0;
+		double numHoles = 0;
+		
+		int lowestTop = 100;
 
-		double height = calcHeight(newField); //- Ryan
-		double linesCompleted = calcLinesCleared(newField);
-		double numHoles = calcNumHoles(newField); //-- Jimmay!!!!
-		double bumpiness = calcBumpiness(newField); //-- Andres
+		// Calculate Height and Bumpiness
+		for(int col = 0; col<maxCol; col++){
+			height+= newTop[col];
+			if(newTop[col] < lowestTop) lowestTop = newTop[col];
+			if(col!= 0) {
+				bumpiness += Math.abs(newTop[col]-newTop[col-1]);
+			}	
+		}
+		// Calculate Height and Bumpiness
+		for (int j = 0; j < maxCol; j++){
+			// Boolean representation of if we have found the columns top yet
+			// Do we need to check top row? If we're there we lost right?
+			for (int i = newTop[j]; i >= 0; i--) {
+				// If the top filled square of the column is not yet found and we found a filled square 
+				if(newField[i][j] == 0) {
+					//It must be a hole, so increment
+					numHoles += 1;
+				}
+			}
+		}
+		
+		for(int i = 0; i < lowestTop; i++ ){
+			int isCompleted = 1;
+			for(int j = 0; j < State.COLS; j++){
+				if(newField[i][j] == 0){
+					isCompleted = 0;
+					break;
+				}
+			}
+			linesCompleted += isCompleted;
+		}
+
 		// System.out.println("Height " + height + " linesCompleted: " + linesCompleted + " bumpiness: " + bumpiness + " HOLES: " + numHoles);
 		//int height = calcHeight(newField);
 		//Multiply weights with scores and add together...
@@ -212,17 +249,19 @@ public class PlayerSkeleton {
 			int[] newTop = Arrays.copyOf(top, top.length);
 
 			// Get the representation of the field when the piece is dropped and collisions calculated (newField will change and passed as a pointer)
-			makeTheoreticalMove(orient, slot, newField, pWidth, pHeight, pTop, pBottom, newTop, nextPiece, turnNumber);
-			// How well does this state perform?
-			double score = calcScore(newField);
-			// We map this score to the current move (which is defined by row index)
-			
-			// scores.put(score, i);
-			
-			// System.out.printf("%f ", score);
-			if(score > highestScore){
-				moveKey = i;
-				highestScore = score;
+			if(makeTheoreticalMove(orient, slot, newField, pWidth, pHeight, pTop, pBottom, newTop, nextPiece, turnNumber)){
+				
+				// How well does this state perform?
+				double score = calcScore(newField, newTop);
+				// We map this score to the current move (which is defined by row index)
+				
+				// scores.put(score, i);
+				
+				// System.out.printf("%f ", score);
+				if(score > highestScore){
+					moveKey = i;
+					highestScore = score;
+				}
 			}
 
 		}
@@ -252,7 +291,7 @@ public class PlayerSkeleton {
 			// System.out.println()
 			s.drawNext(0,0);
 			try {
-				Thread.sleep(30);
+				Thread.sleep(200);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
