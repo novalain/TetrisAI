@@ -1,103 +1,11 @@
 
 import java.util.*;
 import java.io.*;
+import java.util.Random;
 
 
 public class PlayerSkeleton {
-
-	/** Calculate number of filled lines in our theoretical field */
-	public int calcLinesCleared(int[][] newField){
-
-		int linesCleared = 0;
-
-		for(int i = 0; i < State.ROWS; i++ ){
-
-			int isCompleted = 1;
-
-			for(int j = 0; j < State.COLS; j++){
-				if(newField[i][j] == 0){
-					isCompleted = 0;
-					break;
-				}
-			}
-			linesCleared += isCompleted;
-		}
-
-		return linesCleared;
-	}
-
-	/** Calculate number of holes in our theoretical field */
-	public int calcNumHoles(int[][] newField) {
-		
-		int holes = 0;
-
-		for (int j = 0; j < State.COLS; j++){
-			// Boolean representation of if we have found the columns top yet
-			int top = 0;
-			// Do we need to check top row? If we're there we lost right?
-			for (int i = State.ROWS - 1; i >= 0; i--) {
-				// If the top filled square of the column is not yet found and we found a filled square 
-				if (newField[i][j] != 0 && top == 0) {
-					// Set top to found
-					top = 1;
-				}
-				// If the column's top has been found and we have found an empty square
-				if (top == 1 && newField[i][j] == 0) {
-					//It must be a hole, so increment
-					holes += 1;
-				}
-			}
-		}
-
-		return holes;
-	}
-
-	/** Calculate bumpiness in our theoretical field */
-	public int calcBumpiness(int[][] newField){
-
-		int bumpiness = 0;
-		int lRowHeight = 0, rRowHeight = 0;
-		
-		for(int i = 0; i < State.COLS; i++ ){
-			for(int j = State.ROWS-1; j >= 0; j--){
-				if(newField[j][i] != 0 || j == 0) {
-					rRowHeight = j+(newField[j][i] != 0 ? 1:0);
-					if(i!= 0) {
-						bumpiness += Math.abs(lRowHeight-rRowHeight);
-					}
-					lRowHeight = rRowHeight;
-					// System.out.printf("%d, ", rRowHeight);
-					break;
-				}
-			}
-			
-			
-		}
-		// System.out.println();
-		return bumpiness;
-	}
-
-
-	public int calcHeight(int[][] newField){
-		int height = 0;
-		int maxRow = newField.length;
-		int maxCol = newField[0].length;
-
-		//start in the top left of the board
-		//go down each colom untill you find the first peice
-		//add that to the height
-		for(int col = maxCol - 1; col >= 0; col--){
-			for(int row = maxRow - 1; row >=0; row--){
-				if(newField[row][col] != 0){
-					//System.out.println("row, col "+ row +" "+ col);
-					height += (row + 1);
-					break;
-				}
-			}
-		}
-		//System.out.println(height);
-		return height;
-	}
+	private static Random randnum;
 
 	/** Copied from class State. Update the fields 0's and 1's based on current theoretical move 
 
@@ -118,10 +26,9 @@ public class PlayerSkeleton {
 
 		//check if game ended
 		if(height+pHeight[nextPiece][orient] >= State.ROWS) {
-			// System.out.println("We lost... This state sucks. Crash right now, better fix inc");
 			return false;
 		}
-		try{
+
 		//for each column in the piece - fill in the appropriate blocks
 		for(int i = 0; i < pWidth[nextPiece][orient]; i++) {
 			//from bottom to top of brick
@@ -129,38 +36,30 @@ public class PlayerSkeleton {
 				field[h][i+slot] = turn;
 			}
 		}
-	}
-		catch(Exception e) {
-
-		}
 
 		//adjust top
 		for(int c = 0; c < pWidth[nextPiece][orient]; c++) {
 			top[slot+c] = height+pTop[nextPiece][orient][c];
 		}
 		return true;
-		// System.out.println("Move");
-		// 	for(int i = 0; i < State.ROWS; i++ ){
-		// 		for(int j = 0; j < State.COLS; j++){
-		// 			System.out.printf("%d ", field[i][j]);
-		// 		}
-		// 		System.out.println();
-		// 	}
-
 	}
 
-	/** Calculate the new fields score based on our awesome 
-		heuristics */
-	public double calcScore(final int[][] newField, final int[] newTop){
+	/**
+	 * @param newField The board state used to calculate the fitness score
+	 * @param newTop An array containing the top indices of the new board
+	 * @param weightFactors The weight factors for the heuristic values.
+	 * @return Returns the fitness score of this board state
+	 */
+	public double fitnessFunction(final int[][] newField, final int[] newTop, double[] weightFactors){
 
 		// Our magic numbers :)
-		double a = -0.510066, b = 0.760666, c = -0.35663, d = -0.184473;
 		int maxRow = newField.length;
 		int maxCol = newField[0].length;
+
 		double height = 0;
-		double bumpiness = 0;
-		double linesCompleted = 0;
+		double completeLines = 0;
 		double numHoles = 0;
+		double bumpiness = 0;
 		
 		int lowestTop = 100;
 
@@ -193,19 +92,18 @@ public class PlayerSkeleton {
 					break;
 				}
 			}
-			linesCompleted += isCompleted;
+			completeLines += isCompleted;
 		}
 
-		// System.out.println("Height " + height + " linesCompleted: " + linesCompleted + " bumpiness: " + bumpiness + " HOLES: " + numHoles);
-		//int height = calcHeight(newField);
-		//Multiply weights with scores and add together...
-		//System.out.println(" lines completed of new field " + linesCompleted);
-
-		return height*a + linesCompleted*b + numHoles*c + bumpiness*d;
+		return height*weightFactors[0] + completeLines*weightFactors[1] + numHoles*weightFactors[2] + bumpiness*weightFactors[3];
 	
 	}
 
-	/**  Performs a deep copy of our old state to new state */
+	/**
+	 * Performs a deep copy of our old state to new state
+	 * @param original original state
+	 * @return Deep copy of the original state
+	 */
 	public static int[][] deepCopy(int[][] original){
 
 		int[][] result = new int[original.length][];
@@ -220,8 +118,16 @@ public class PlayerSkeleton {
 
 	}
 
-	//implement this function to have a working system
-	public int pickMove(State s, int[][] legalMoves) {
+	/**
+	 * Method that obtains the best moe by iterating through the list of legalMoves and calculating the 
+	 * best score based on a fitness function
+	 * @param s The present state of the game
+	 * @param legalMoves Array representing the available legal moves
+	 * @param weightFactors The parameter list representing the weight of each heuristic value on the final function
+	 * @return The best move calculated by the fitness function
+	 */
+	public int pickMove(State s, int[][] legalMoves, double[] weightFactors) {
+
 
 		int orient, slot;
 		// TreeMap<Double, Integer> scores = new TreeMap<Double, Integer>();
@@ -252,7 +158,7 @@ public class PlayerSkeleton {
 			if(makeTheoreticalMove(orient, slot, newField, pWidth, pHeight, pTop, pBottom, newTop, nextPiece, turnNumber)){
 				
 				// How well does this state perform?
-				double score = calcScore(newField, newTop);
+				double score = fitnessFunction(newField, newTop, weightFactors);
 				// We map this score to the current move (which is defined by row index)
 				
 				// scores.put(score, i);
@@ -265,38 +171,140 @@ public class PlayerSkeleton {
 			}
 
 		}
-			
-		/*
-		for(Map.Entry<Double,Integer> entry : scores.entrySet()) {
-		  Double key = entry.getKey();
-		  Integer value = entry.getValue();
-
-		  System.out.println(key + " => " + value);
-
-		}
-*/
-		// System.out.println("Making move " + scores.get(scores.lastKey()) + " " + scores.lastKey() + " " + moveKey + " " + highestScore);
 
 		return moveKey; // We want the move associated to the highest score
 	
 	}
-	
-	public static void main(String[] args) {
+	/**
+	 * Commented out but might used for parallel
+	 */
+	// public List<Output> processInputs(List<Input> inputs)
+	//         throws InterruptedException, ExecutionException {
+
+	//     int threads = Runtime.getRuntime().availableProcessors();
+	//     ExecutorService service = Executors.newFixedThreadPool(threads);
+
+	//     List<Future<Output>> futures = new ArrayList<Future<Output>>();
+	//     for (final Input input : inputs) {
+	//         Callable<Output> callable = new Callable<Output>() {
+	//             public Output call() throws Exception {
+	//                 Output output = new Output();
+	//                 // process your input here and compute the output
+	//                 return output;
+	//             }
+	//         };
+	//         futures.add(service.submit(callable));
+	//     }
+
+	//     service.shutdown();
+
+	//     List<Output> outputs = new ArrayList<Output>();
+	//     for (Future<Output> future : futures) {
+	//         outputs.add(future.get());
+	//     }
+	//     return outputs;
+	// }
+
+	/**
+	 * @param fitnessP The weight factors passed into the fitness function
+	 * @param sleepTime The time given to the thread to sleep between drawing each new move
+	 * @param maxScore Maximum permited score for this game
+	 * @return Returns the score obtained by the AI
+	 */
+	public static int RunAI(double[] fitnessP, int sleepTime, int maxScore){
 		State s = new State();
 		new TFrame(s);
 		PlayerSkeleton p = new PlayerSkeleton();
-		while(!s.hasLost()) {
-			s.makeMove(p.pickMove(s,s.legalMoves()));
+		
+		while(!s.hasLost() && s.getRowsCleared() < maxScore) {
+			s.makeMove(p.pickMove(s,s.legalMoves(), fitnessP));
 			s.draw();
-			// System.out.println()
 			s.drawNext(0,0);
 			try {
-				Thread.sleep(200);
+				Thread.sleep(sleepTime);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
-		System.out.println("You have completed "+s.getRowsCleared()+" rows.");
+		return s.getRowsCleared();
+	}
+	/**
+	 * Creates an initial population of randomly generated unit vectors in the 4D unit sphere for the 
+	 * heuristic values
+	 * @param populationCount The size of the desired population
+	 * @param weightsCount Number of desired weight factors in each individual
+	 * @return Returns the initial population
+	 */
+	public static double[][] getIntialPopulation(int populationCount, int weightsCount){
+		double pEvolve[][] = new double[populationCount][weightsCount];
+		int fitnessP[] = new int[populationCount];
+		
+		for(int i = 0; i< populationCount; i++) {
+			fitnessP[i] = 0;
+			double magnitude = 0.0;
+			for (int j = 0; j<weightsCount; j++) {
+				pEvolve[i][j] = randnum.nextDouble()*2.0 - 1.0;
+				magnitude += Math.abs(pEvolve[i][j]);
+			}
+			for (int j = 0; j<weightsCount; j++) {
+				pEvolve[i][j] /= magnitude;
+				
+			}
+		}
+		return pEvolve;
+	}
+	
+	/**
+	 * Runs the evolution with the use of genetic algorithms
+	 * @param heuristicsCount Number of heurstic weights to search for
+	 * @return The result of the evolution, namely the heuristic value weights
+	 */
+	public static double[] RunEvolution(int heuristicsCount){
+		System.out.println("Starting Evolution");
+		int numGames= 3;
+		int populationCount = 100;
+		double finalParameters[] = new double[heuristicsCount];
+
+		double pEvolve[][] = getIntialPopulation(populationCount, heuristicsCount);
+		int fitnessP[] = new int[populationCount];
+
+		// This will be run in parallel
+
+		for(int i = 0; i< populationCount; i++){
+			System.out.println("Evolving "+ pEvolve[i][0] + " " + pEvolve[i][1] + " " + pEvolve[i][2] + " " + pEvolve[i][3]);
+			for (int j = 0; j<numGames; j++) {
+				int rowsCleared = RunAI(pEvolve[i], 30, 200);
+				System.out.println("Game " + (j+1)+ ": "+ rowsCleared);
+				fitnessP[i] += rowsCleared;
+			}
+			System.out.println("Total " + fitnessP[i]);
+		}
+		
+		// End parallel
+		Random rand = new Random(); 
+		LinkedList crossOver = new LinkedList();
+		while(crossOver.size() <= populationCount/3) {
+			// select 10%
+			// select fittest individuals and add them to the crossOver population
+		}
+		// Continue with evolution
+		return finalParameters;
+	}
+
+	/**
+	 * Main method for running either the game or the evolution
+	 *
+	 * @param args If an argument is passed(Whatever it is) it will run the evolution, otherwise it will run the game
+	 */
+	public static void main(String[] args) {
+		randnum = new Random();
+		double weightFactors[] = {-0.510066, 0.760666, -0.35663, -0.184473};
+		if(args.length > 0){
+			weightFactors = RunEvolution(4);
+			// Returns empty, not yet finished
+			System.out.println("Completed evolution with: " + weightFactors[0] + " " + weightFactors[1] + " " + weightFactors[2] + " " + weightFactors[3]);
+		}
+		System.out.println("You have completed "+ RunAI(weightFactors, 300, Integer.MAX_VALUE)+" rows.");
 	}
 	
 }
