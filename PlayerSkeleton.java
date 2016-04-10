@@ -7,10 +7,22 @@ import java.util.Random;
 public class PlayerSkeleton {
 	private static Random randnum;
 
-	/** Copied from class State. Update the fields 0's and 1's based on current theoretical move 
-
-	Would rather copy a state and use function copiedState.makeMove() but can't make deep copy
-	since we cannot modify class State */
+	/**
+	 * Copied from class State. Update the fields 0's and 1's based on current theoretical move 
+	 * Would rather copy a state and use function copiedState.makeMove() but can't make deep copy
+	 * since we cannot modify class State
+	 * @param
+	 * @param
+	 * @param
+	 * @param
+	 * @param
+	 * @param
+	 * @param
+	 * @param
+	 * @param
+	 * @param
+	 * @return
+	 */
 	public Boolean makeTheoreticalMove(final int orient, final int slot, int[][] field, final int[][] pWidth, final int[][] pHeight, 
 									final int[][][] pTop, final int[][][] pBottom, final int[] top, final int nextPiece, int turn) {
 		
@@ -279,7 +291,7 @@ public class PlayerSkeleton {
 			}
 			System.out.println("Total " + fitnessP[i]);
 		}
-		
+
 		// End parallel
 		Random rand = new Random(); 
 		LinkedList crossOver = new LinkedList();
