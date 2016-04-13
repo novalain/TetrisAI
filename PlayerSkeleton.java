@@ -3,6 +3,39 @@ import java.util.*;
 import java.io.*;
 import java.util.Random;
 
+
+//Why did I create a new class? Needs to implement runnable to be able to call the threads
+//It was not working when I did this within class PlayerSkeleton
+//Going to optimize (basically remove main and just have PlayerSkeleton implements runnable)
+//Main will thus have to summon parallel threads, but atm easier for me to keep this code seperated
+public class gameThread extends PlayerSkeleton implements runnable {
+	int threadNum;
+	int numGames;
+	int populationCount;
+	double[][] pEvolve;
+	int[] fitnessP;
+
+	public void run() {
+		for(int i = 0; i< populationCount; i++){
+			System.out.println("Evolving "+ pEvolve[i][0] + " " + pEvolve[i][1] + " " + pEvolve[i][2] + " " + pEvolve[i][3]);
+			for (int j = 0; j<numGames; j++) {
+				int rowsCleared = RunAI(pEvolve[i], 30, 200);
+				System.out.println("Game " + (j+1)+ ": "+ rowsCleared);
+				fitnessP[i] += rowsCleared;
+			}
+			System.out.println("Total " + fitnessP[i]);
+		}
+	}
+
+	public gameThread(int i, int games, int popCount, double probEvolve, int fitnessProb) {
+		threadNum = i;
+		numGames = games;
+		populationCount = popCount;
+		pEvolve = probEvolve;
+		fitnessP = fitnessProb;
+	}
+}
+
 public class PlayerSkeleton {
 	private static Random randnum;
 
@@ -362,6 +395,8 @@ public class PlayerSkeleton {
 	 */
 	public static double[] RunEvolution(int heuristicsCount){
 		System.out.println("Starting Evolution");
+		int numThreads = 4;
+		ArrayList<Thread> gameThreads = new ArrayList<Thread>();
 		int numGames= 3;
 		int populationCount = 100;
 		double finalParameters[] = new double[heuristicsCount];
@@ -371,15 +406,29 @@ public class PlayerSkeleton {
 
 		// This will be run in parallel
 
-		for(int i = 0; i< populationCount; i++){
-			System.out.println("Evolving "+ pEvolve[i][0] + " " + pEvolve[i][1] + " " + pEvolve[i][2] + " " + pEvolve[i][3]);
-			for (int j = 0; j<numGames; j++) {
-				int rowsCleared = RunAI(pEvolve[i], 30, 200);
-				System.out.println("Game " + (j+1)+ ": "+ rowsCleared);
-				fitnessP[i] += rowsCleared;
-			}
-			System.out.println("Total " + fitnessP[i]);
+
+		//Create an array containing as many threads as we can efficiently run on our system
+		//Having issues passing pEvolve and fitnessP
+		for (int i = 0; i < numThreads; i++) {
+			gameThreads.add(new Thread(new gameThread(i, numGames, populationCount, pEvolve, fitnessP)));
 		}
+		//Start the threads
+		for (int i = 0; i < gameThreads.size(); i++) {
+			gameThreads.get(i).start();
+		}
+		//YET TO IMPLEMENT: Adding results to an array and spitting it back or writing to file
+		//so that we can run evolution processing using the parallel outputs
+
+		// //This is now computed within the thread (not complete)
+		// for(int i = 0; i< populationCount; i++){
+		// 	System.out.println("Evolving "+ pEvolve[i][0] + " " + pEvolve[i][1] + " " + pEvolve[i][2] + " " + pEvolve[i][3]);
+		// 	for (int j = 0; j<numGames; j++) {
+		// 		int rowsCleared = RunAI(pEvolve[i], 30, 200);
+		// 		System.out.println("Game " + (j+1)+ ": "+ rowsCleared);
+		// 		fitnessP[i] += rowsCleared;
+		// 	}
+		// 	System.out.println("Total " + fitnessP[i]);
+		// }
 
 		// End parallel
 		Random rand = new Random(); 
