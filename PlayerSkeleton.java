@@ -209,7 +209,6 @@ public class PlayerSkeleton {
 		
   	}
 
-
 	/**
 	 * Method that obtains the best moe by iterating through the list of legalMoves and calculating the 
 	 * best score based on a fitness function
@@ -338,11 +337,12 @@ public class PlayerSkeleton {
 	 */
 	public static double[][] getIntialPopulation(int populationCount, int weightsCount){
 		double pEvolve[][] = new double[populationCount][weightsCount];
-		int fitnessP[] = new int[populationCount];
+		//int fitnessP[] = new int[populationCount];
 		
 		for(int i = 0; i< populationCount; i++) {
-			fitnessP[i] = 0;
+			//fitnessP[i] = 0;
 			double magnitude = 0.0;
+
 			for (int j = 0; j<weightsCount; j++) {
 				pEvolve[i][j] = randnum.nextDouble()*2.0 - 1.0;
 				magnitude += Math.abs(pEvolve[i][j]);
@@ -370,25 +370,85 @@ public class PlayerSkeleton {
 		int fitnessP[] = new int[populationCount];
 
 		// This will be run in parallel
-
 		for(int i = 0; i< populationCount; i++){
-			System.out.println("Evolving "+ pEvolve[i][0] + " " + pEvolve[i][1] + " " + pEvolve[i][2] + " " + pEvolve[i][3]);
+			System.out.println("Training "+ pEvolve[i][0] + " " + pEvolve[i][1] + " " + pEvolve[i][2] + " " + pEvolve[i][3]);
 			for (int j = 0; j<numGames; j++) {
-				int rowsCleared = RunAI(pEvolve[i], 30, 200);
+				int rowsCleared = RunAI(pEvolve[i], 30, 200); // Run until fail => 500 pieces limit? Also creates a new window for each instance - overhead?
 				System.out.println("Game " + (j+1)+ ": "+ rowsCleared);
 				fitnessP[i] += rowsCleared;
 			}
 			System.out.println("Total " + fitnessP[i]);
 		}
 
+		// ====Create offsprings ====
+
+		int offspringCount = 0;
+		double[][] offsprings = new double[(populationCount/100) * 30][heuristicsCount];
+
+		// We want create offsprings up to 30% of the population
+		while(offspringCount < (populationCount/100)*30){
+
+				// Select 10% of the population at random
+				double[][] randomSelection = new double[(populationCount/100) * 10][heuristicsCount];
+				int[] randomSelectionFitness = new int[(populationCount/100)*10];
+				int count = 0;
+				while(count < (populationCount/100) * 10){
+					int randIndex = randnum.nextInt(populationCount);
+					randomSelection[count] = pEvolve[randIndex];
+					randomSelectionFitness[count++] = fitnessP[randIndex];
+				}
+
+				// Get the two most fittest from this random selection  
+				IntegerPair maxFitness = new IntegerPair(-1, -1); // Value, Index
+				IntegerPair maxFitnessSecond = new IntegerPair(-1, -1);
+
+				for(int i = 0; i < (populationCount/100)*10; i++){
+					if(randomSelectionFitness[i] > maxFitness.first){
+						maxFitnessSecond.first = maxFitness.first;
+						maxFitnessSecond.second = maxFitness.second;
+						maxFitness.first = randomSelectionFitness[i];
+						maxFitness.second = i;
+
+					} else if (randomSelectionFitness[i] > maxFitnessSecond.first && randomSelectionFitness[i] < maxFitness.first){
+						maxFitnessSecond.first = randomSelectionFitness[i];
+						maxFitnessSecond.second = i;
+					}
+				}
+
+				int f_p1 = maxFitness.first;
+				int f_p2 = maxFitnessSecond.first;
+				double[] p1 = randomSelection[maxFitness.second];
+				double[] p2 = randomSelection[maxFitnessSecond.second];
+				double[] offspring = new double[heuristicsCount];
+
+				System.out.println("Elite parent1: " + p1[0] + " " + p1[1] + " " + p1[2] + " " + p1[3] + " with fitness " + f_p1);
+				System.out.println("Elite parent2: " + p2[0] + " " + p2[1] + " " + p2[2] + " " + p1[3] + " with fitness " + f_p2);
+
+				// Weighted average crossover
+				for(int i = 0; i < heuristicsCount; i++)
+					offspring[i] = p1[i] * f_p1 + p2[i] * f_p2;
+				
+				// Mutation
+				if(Math.random() < 0.05){
+					offspring[randnum.nextInt(4)] += (-2 + 4 * randnum.nextDouble());
+				}	
+
+				offsprings[offspringCount++] = offspring;
+
+		}
+
+		// Get weakest 30%, delete them and replace with new offsprings 
+
 		// End parallel
-		Random rand = new Random(); 
-		LinkedList crossOver = new LinkedList();
+		/*Random rand = new Random(); 
+		LinkedList crossOver = new LinkedList(); // Why linked list?
 		while(crossOver.size() <= populationCount/3) {
 			// select 10%
 			// select fittest individuals and add them to the crossOver population
-		}
-		// Continue with evolution
+		}*/
+
+
+		// Run next evolution
 		return finalParameters;
 	}
 
@@ -397,13 +457,11 @@ public class PlayerSkeleton {
 	 *
 	 * @param args If an argument is passed(Whatever it is) it will run the evolution, otherwise it will run the game
 	 */
-
-
 	public static void main(String[] args) {
 		randnum = new Random();
-		double weightFactors[] = {-0.510066, 0.760666, -0.35663, -0.184473};
+		double weightFactors[] = {-0.510066, 0.760666, -0.35663, -0.184483};
 		
-		if(args.length > 1){
+		if(args.length > 0){
 			weightFactors = RunEvolution(4);
 			// Returns empty, not yet finished
 			System.out.println("Completed evolution with: " + weightFactors[0] + " " + weightFactors[1] + " " + weightFactors[2] + " " + weightFactors[3]);
@@ -411,5 +469,17 @@ public class PlayerSkeleton {
 		System.out.println("You have completed "+ RunAI(weightFactors, 20, Integer.MAX_VALUE)+" rows.");
 	}
 	
+}
+
+class IntegerPair{
+
+	public int first;
+	public int second;
+
+	public IntegerPair(int first, int second){
+		this.first = first;
+		this.second = second;
+	}
+
 }
 
