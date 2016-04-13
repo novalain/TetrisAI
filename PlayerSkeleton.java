@@ -3,6 +3,39 @@ import java.util.*;
 import java.io.*;
 import java.util.Random;
 
+
+//Why did I create a new class? Needs to implement runnable to be able to call the threads
+//It was not working when I did this within class PlayerSkeleton
+//Going to optimize (basically remove main and just have PlayerSkeleton implements runnable)
+//Main will thus have to summon parallel threads, but atm easier for me to keep this code seperated
+/*public class gameThread extends PlayerSkeleton implements runnable {
+	int threadNum;
+	int numGames;
+	int populationCount;
+	double[][] pEvolve;
+	int[] fitnessP;
+
+	public void run() {
+		for(int i = 0; i< populationCount; i++){
+			System.out.println("Evolving "+ pEvolve[i][0] + " " + pEvolve[i][1] + " " + pEvolve[i][2] + " " + pEvolve[i][3]);
+			for (int j = 0; j<numGames; j++) {
+				int rowsCleared = RunAI(pEvolve[i], 30, 200);
+				System.out.println("Game " + (j+1)+ ": "+ rowsCleared);
+				fitnessP[i] += rowsCleared;
+			}
+			System.out.println("Total " + fitnessP[i]);
+		}
+	}
+
+	public gameThread(int i, int games, int popCount, double probEvolve, int fitnessProb) {
+		threadNum = i;
+		numGames = games;
+		populationCount = popCount;
+		pEvolve = probEvolve;
+		fitnessP = fitnessProb;
+	}
+}*/
+
 public class PlayerSkeleton {
 	private static Random randnum;
 
@@ -369,19 +402,36 @@ public class PlayerSkeleton {
 		double pEvolve[][] = getIntialPopulation(populationCount, heuristicsCount);
 		int fitnessP[] = new int[populationCount];
 
-		// This will be run in parallel
+		//int numThreads = 4;
+		//ArrayList<Thread> gameThreads = new ArrayList<Thread>();
+
+		//Create an array containing as many threads as we can efficiently run on our system
+		//Having issues passing pEvolve and fitnessP
+		/*for (int i = 0; i < numThreads; i++) {
+			gameThreads.add(new Thread(new gameThread(i, numGames, populationCount, pEvolve, fitnessP)));
+		}
+		//Start the threads
+		for (int i = 0; i < gameThreads.size(); i++) {
+			gameThreads.get(i).start();
+		}*/
+
+		// End parallel
+
+		//YET TO IMPLEMENT: Adding results to an array and spitting it back or writing to file
+		//so that we can run evolution processing using the parallel outputs
+
+		//This is now computed within the thread (not complete)
 		for(int i = 0; i< populationCount; i++){
-			System.out.println("Training "+ pEvolve[i][0] + " " + pEvolve[i][1] + " " + pEvolve[i][2] + " " + pEvolve[i][3]);
+			System.out.println("Evolving "+ pEvolve[i][0] + " " + pEvolve[i][1] + " " + pEvolve[i][2] + " " + pEvolve[i][3]);
 			for (int j = 0; j<numGames; j++) {
-				int rowsCleared = RunAI(pEvolve[i], 30, 200); // Run until fail => 500 pieces limit? Also creates a new window for each instance - overhead?
+				int rowsCleared = RunAI(pEvolve[i], 30, 200);
 				System.out.println("Game " + (j+1)+ ": "+ rowsCleared);
 				fitnessP[i] += rowsCleared;
 			}
 			System.out.println("Total " + fitnessP[i]);
 		}
 
-		// ====Create offsprings ====
-
+		// Select parents and produce offsprings part 
 		int offspringCount = 0;
 		double[][] offsprings = new double[(populationCount/100) * 30][heuristicsCount];
 
@@ -437,11 +487,10 @@ public class PlayerSkeleton {
 
 		}
 
-		// Get weakest 30%, delete them and replace with new offsprings 
-
-		// End parallel
+		// NOW we need to get the weakest 30%, delete them and replace with new offsprings array
+		// Then we can run the evolution again
 		/*Random rand = new Random(); 
-		LinkedList crossOver = new LinkedList(); // Why linked list?
+		LinkedList crossOver = new LinkedList();
 		while(crossOver.size() <= populationCount/3) {
 			// select 10%
 			// select fittest individuals and add them to the crossOver population
