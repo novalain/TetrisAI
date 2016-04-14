@@ -519,11 +519,9 @@ public class PlayerSkeleton {
 
 					// Normalize 
 					double magnitude = 0;
-			
 					for (int i = 0; i<heuristicsCount; i++) {
 						magnitude += Math.abs(offspring[i]);
 					}
-
 					for (int i = 0; i<heuristicsCount; i++) {
 						offspring[i] /= magnitude;
 					}
