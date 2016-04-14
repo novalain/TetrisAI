@@ -2,39 +2,11 @@
 import java.util.*;
 import java.io.*;
 import java.util.Random;
-
-
-//Why did I create a new class? Needs to implement runnable to be able to call the threads
-//It was not working when I did this within class PlayerSkeleton
-//Going to optimize (basically remove main and just have PlayerSkeleton implements runnable)
-//Main will thus have to summon parallel threads, but atm easier for me to keep this code seperated
-/*public class gameThread extends PlayerSkeleton implements runnable {
-	int threadNum;
-	int numGames;
-	int populationCount;
-	double[][] pEvolve;
-	int[] fitnessP;
-
-	public void run() {
-		for(int i = 0; i< populationCount; i++){
-			System.out.println("Evolving "+ pEvolve[i][0] + " " + pEvolve[i][1] + " " + pEvolve[i][2] + " " + pEvolve[i][3]);
-			for (int j = 0; j<numGames; j++) {
-				int rowsCleared = RunAI(pEvolve[i], 30, 200, evolutionMode);
-				System.out.println("Game " + (j+1)+ ": "+ rowsCleared);
-				fitnessP[i].first += rowsCleared;
-			}
-			System.out.println("Total " + fitnessP[i].first);
-		}
-	}
-
-	public gameThread(int i, int games, int popCount, double probEvolve, int fitnessProb) {
-		threadNum = i;
-		numGames = games;
-		populationCount = popCount;
-		pEvolve = probEvolve;
-		fitnessP = fitnessProb;
-	}
-}*/
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class PlayerSkeleton {
 	private static Random randnum;
@@ -308,35 +280,63 @@ public class PlayerSkeleton {
 		return possibleMoves.size() == 0 ? 0 : possibleMoves.get(randnum.nextInt(possibleMoves.size()));
 	
 	}
-	/**
-	 * Commented out but might used for parallel
-	 */
-	// public int processInputs(double pEvolve[])
-	//         throws InterruptedException, ExecutionException {
 
-	//     int threads = Runtime.getRuntime().availableProcessors();
-	//     ExecutorService service = Executors.newFixedThreadPool(threads);
 
-	//     List<Future<Output>> futures = new ArrayList<Future<Output>>();
-	//     for (final Input input : inputs) {
-	//         Callable<Output> callable = new Callable<Output>() {
-	//             public Output call() throws Exception {
-	//                 Output output = new Output();
-	//                 // process your input here and compute the output
-	//                 return output;
-	//             }
-	//         };
-	//         futures.add(service.submit(callable));
-	//     }
+	//Start of Parallelization code
+	public static class gameThread implements Callable<Integer> {
+		private final double[][] pEvolve;
+		private final int guy;
+		private int rowsCleared;
 
-	//     service.shutdown();
+		public gameThread(double[][] probEvolve, int i) {
+			this.pEvolve = probEvolve;
+			this.guy = i;
+		}
 
-	//     List<Output> outputs = new ArrayList<Output>();
-	//     for (Future<Output> future : futures) {
-	//         outputs.add(future.get());
-	//     }
-	//     return outputs;
-	// }
+		public Integer call() {
+			//System.out.println("Thread " + guy + " has BEGUN");
+			try {
+				rowsCleared = RunAI(pEvolve[guy], 30, 700, false);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		//System.out.println("Thread " + guy + " has FINISHED");
+		//System.out.println("Guy " + guy + " cleared: " + rowsCleared + " rows");
+		return rowsCleared;
+		}
+	}
+
+	public static int parallelizePerson(double[][] pEvolve, int guy, int numGames){
+
+	    int threads = Runtime.getRuntime().availableProcessors();
+	    //System.out.println("We have: " + threads + " threads to play on");
+	    ExecutorService executor = Executors.newFixedThreadPool(threads);
+	    ArrayList<Future<Integer>> futures = new ArrayList<Future<Integer>>();
+
+	    for (int i = 0; i < numGames; i++) {
+	    	Callable<Integer> callable = new gameThread(pEvolve, guy);
+		    Future<Integer> future = executor.submit(callable);
+		    futures.add(future);
+	    }
+
+	    executor.shutdown();
+
+	    int totalRows = 0;
+	    for (Future<Integer> future : futures) {
+	    	try {
+	    		totalRows += future.get();
+	    		//System.out.println("TotalRows = " + totalRows);
+	    	} catch (InterruptedException e) {
+	    		e.printStackTrace();
+	    	} catch (ExecutionException e) {
+	    		System.out.println(e);
+	    	}
+	    }
+	    //System.out.println("Guy " + guy + " cleared: " + totalRows + " in total");
+	    return totalRows;
+	}
+	//End of Parallelization code
+
 
 	/**
 	 * @param fitnessP The weight factors passed into the fitness function
@@ -418,41 +418,27 @@ public class PlayerSkeleton {
 		while(highestScore < Integer.MAX_VALUE) {
 			generationCount++;
 			System.out.printf("Generation: %d\n", generationCount);
-			//int numThreads = 4;
-			//ArrayList<Thread> gameThreads = new ArrayList<Thread>();
 
-			//Create an array containing as many threads as we can efficiently run on our system
-			//Having issues passing pEvolve and fitnessP
-			/*for (int i = 0; i < numThreads; i++) {
-				gameThreads.add(new Thread(new gameThread(i, numGames, populationCount, pEvolve, fitnessP)));
-			}
-			//Start the threads
-			for (int i = 0; i < gameThreads.size(); i++) {
-				gameThreads.get(i).start();
-			}*/
-
-			// End parallel
-
-			//YET TO IMPLEMENT: Adding results to an array and spitting it back or writing to file
-			//so that we can run evolution processing using the parallel outputs
-
-			//This is now computed within the thread (not complete)
 			int gameNumber = 0;
 			int maxScore = -1;
 			System.out.println("Starting generation playing");
 			for(int i = 0; i < populationCount; i++){
 				fitnessP[i] = new IntegerPair(0, i);
 
-				// System.out.println("Playing subject: "+ i + "\n" + pEvolve[i][0] + " " + pEvolve[i][1] + " " + pEvolve[i][2] + " " + pEvolve[i][3]);
-				for (int j = 0; j<numGames; j++) {
-					int rowsCleared = RunAI(pEvolve[i], 30, 700, false);
-					// System.out.println("Game " + (j+1)+ ": "+ rowsCleared);
-					// System.out.printf("%d", fitnessP.first);
-					// breakpoint;
-					fitnessP[i].first += rowsCleared;
+				// // System.out.println("Playing subject: "+ i + "\n" + pEvolve[i][0] + " " + pEvolve[i][1] + " " + pEvolve[i][2] + " " + pEvolve[i][3]);
+				// for (int j = 0; j<numGames; j++) {
+				// 	//Thread singleGame = new gameThread(pEvolve, i);
+				// 	int rowsCleared = RunAI(pEvolve[i], 30, 700, false);
+				// 	// System.out.println("Game " + (j+1)+ ": "+ rowsCleared);
+				// 	// System.out.printf("%d", fitnessP.first);
+				// 	// breakpoint;
+				// 	fitnessP[i].first += rowsCleared;
 					
-					gameNumber++;
-				}
+				// 	gameNumber++;
+				// }
+				int totalCleared = parallelizePerson(pEvolve, i, numGames);
+				fitnessP[i].first += totalCleared;
+
 				if(fitnessP[i].first > maxScore) {
 					maxScore = fitnessP[i].first;
 					finalParameters = pEvolve[i];
