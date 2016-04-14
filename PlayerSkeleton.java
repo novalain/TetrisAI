@@ -459,8 +459,9 @@ public class PlayerSkeleton {
 				}
 
 			}
-			System.out.printf("Max TotalScore %d\n", maxScore);
-			System.out.println("BestVector of current generation"+ finalParameters[0] + " " + finalParameters[1] + " " + finalParameters[2] + " " + finalParameters[3]);
+			// System.out.printf("Max TotalScore %d\n", maxScore);
+			// System.out.println("BestVector of current generation");
+			// System.out.println(finalParameters[0] + " " + finalParameters[1] + " " + finalParameters[2] + " " + finalParameters[3]);
 			// Select parents and produce offsprings part 
 			int offspringCount = 0;
 			int tenPercent = (int)(populationCount*0.1);
