@@ -346,7 +346,8 @@ public class PlayerSkeleton {
 	 */
 	public static int RunAI(double[] fitnessP, int sleepTime, int maxScore){
 		State s = new State();
-		new TFrame(s);
+		TFrame frame = new TFrame(s);
+
 		PlayerSkeleton p = new PlayerSkeleton();
 		
 		while(!s.hasLost() && s.getRowsCleared() < maxScore) {
@@ -359,6 +360,7 @@ public class PlayerSkeleton {
 				e.printStackTrace();
 			}
 		}
+		frame.dispose();
 		return s.getRowsCleared();
 	}
 	/**
