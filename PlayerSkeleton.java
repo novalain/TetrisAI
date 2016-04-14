@@ -19,11 +19,11 @@ import java.util.Random;
 		for(int i = 0; i< populationCount; i++){
 			System.out.println("Evolving "+ pEvolve[i][0] + " " + pEvolve[i][1] + " " + pEvolve[i][2] + " " + pEvolve[i][3]);
 			for (int j = 0; j<numGames; j++) {
-				int rowsCleared = RunAI(pEvolve[i], 30, 200);
+				int rowsCleared = RunAI(pEvolve[i], 30, 200, evolutionMode);
 				System.out.println("Game " + (j+1)+ ": "+ rowsCleared);
-				fitnessP[i] += rowsCleared;
+				fitnessP[i].first += rowsCleared;
 			}
-			System.out.println("Total " + fitnessP[i]);
+			System.out.println("Total " + fitnessP[i].first);
 		}
 	}
 
@@ -341,26 +341,36 @@ public class PlayerSkeleton {
 	/**
 	 * @param fitnessP The weight factors passed into the fitness function
 	 * @param sleepTime The time given to the thread to sleep between drawing each new move
-	 * @param maxScore Maximum permited score for this game
+	 * @param maxPieces Maximum permited score for this game
 	 * @return Returns the score obtained by the AI
 	 */
-	public static int RunAI(double[] fitnessP, int sleepTime, int maxScore){
+	public static int RunAI(double[] fitnessP, int sleepTime, int maxPieces, Boolean playingMode){
 		State s = new State();
-		TFrame frame = new TFrame(s);
+		TFrame frame = null;
+		if(playingMode){
+			frame = new TFrame(s);
+		}
 
 		PlayerSkeleton p = new PlayerSkeleton();
-		
-		while(!s.hasLost() && s.getRowsCleared() < maxScore) {
+		int piecesDrawn = 0;
+		while(!s.hasLost() && piecesDrawn < maxPieces) {
 			s.makeMove(p.pickMove(s,s.legalMoves(), fitnessP));
-			s.draw();
-			s.drawNext(0,0);
-			try {
-				Thread.sleep(sleepTime);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+			if(playingMode){
+				s.draw();
+				s.drawNext(0,0);
+				
+				try {
+					Thread.sleep(sleepTime);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
+			
+			piecesDrawn++;
 		}
-		frame.dispose();
+		if(playingMode) {
+			frame.dispose();
+		}
 		return s.getRowsCleared();
 	}
 	/**
@@ -375,7 +385,7 @@ public class PlayerSkeleton {
 		//int fitnessP[] = new int[populationCount];
 		
 		for(int i = 0; i< populationCount; i++) {
-			//fitnessP[i] = 0;
+			//fitnessP[i].first = 0;
 			double magnitude = 0.0;
 
 			for (int j = 0; j<weightsCount; j++) {
@@ -397,107 +407,132 @@ public class PlayerSkeleton {
 	 */
 	public static double[] RunEvolution(int heuristicsCount){
 		System.out.println("Starting Evolution");
-		int numGames= 3;
-		int populationCount = 100;
+		int numGames= 100;
+		int populationCount = 1000;
 		double finalParameters[] = new double[heuristicsCount];
-
 		double pEvolve[][] = getIntialPopulation(populationCount, heuristicsCount);
-		int fitnessP[] = new int[populationCount];
+		IntegerPair fitnessP[] = new IntegerPair[populationCount];
+		int highestScore = -1;
+		int generationCount = 0;
+		// When to stop?
+		while(highestScore < Integer.MAX_VALUE) {
+			generationCount++;
+			System.out.printf("Generation: %d", generationCount);
+			//int numThreads = 4;
+			//ArrayList<Thread> gameThreads = new ArrayList<Thread>();
 
-		//int numThreads = 4;
-		//ArrayList<Thread> gameThreads = new ArrayList<Thread>();
-
-		//Create an array containing as many threads as we can efficiently run on our system
-		//Having issues passing pEvolve and fitnessP
-		/*for (int i = 0; i < numThreads; i++) {
-			gameThreads.add(new Thread(new gameThread(i, numGames, populationCount, pEvolve, fitnessP)));
-		}
-		//Start the threads
-		for (int i = 0; i < gameThreads.size(); i++) {
-			gameThreads.get(i).start();
-		}*/
-
-		// End parallel
-
-		//YET TO IMPLEMENT: Adding results to an array and spitting it back or writing to file
-		//so that we can run evolution processing using the parallel outputs
-
-		//This is now computed within the thread (not complete)
-		for(int i = 0; i< populationCount; i++){
-			System.out.println("Evolving "+ pEvolve[i][0] + " " + pEvolve[i][1] + " " + pEvolve[i][2] + " " + pEvolve[i][3]);
-			for (int j = 0; j<numGames; j++) {
-				int rowsCleared = RunAI(pEvolve[i], 30, 200);
-				System.out.println("Game " + (j+1)+ ": "+ rowsCleared);
-				fitnessP[i] += rowsCleared;
+			//Create an array containing as many threads as we can efficiently run on our system
+			//Having issues passing pEvolve and fitnessP
+			/*for (int i = 0; i < numThreads; i++) {
+				gameThreads.add(new Thread(new gameThread(i, numGames, populationCount, pEvolve, fitnessP)));
 			}
-			System.out.println("Total " + fitnessP[i]);
-		}
+			//Start the threads
+			for (int i = 0; i < gameThreads.size(); i++) {
+				gameThreads.get(i).start();
+			}*/
 
-		// Select parents and produce offsprings part 
-		int offspringCount = 0;
-		double[][] offsprings = new double[(populationCount/100) * 30][heuristicsCount];
+			// End parallel
 
-		// We want create offsprings up to 30% of the population
-		while(offspringCount < (populationCount/100)*30){
+			//YET TO IMPLEMENT: Adding results to an array and spitting it back or writing to file
+			//so that we can run evolution processing using the parallel outputs
 
-				// Select 10% of the population at random
-				double[][] randomSelection = new double[(populationCount/100) * 10][heuristicsCount];
-				int[] randomSelectionFitness = new int[(populationCount/100)*10];
-				int count = 0;
-				while(count < (populationCount/100) * 10){
-					int randIndex = randnum.nextInt(populationCount);
-					randomSelection[count] = pEvolve[randIndex];
-					randomSelectionFitness[count++] = fitnessP[randIndex];
+			//This is now computed within the thread (not complete)
+			int gameNumber = 0;
+			int maxScore = -1;
+			
+			for(int i = 0; i < populationCount; i++){
+				fitnessP[i] = new IntegerPair(0, i);
+
+				// System.out.println("Playing subject: "+ i + "\n" + pEvolve[i][0] + " " + pEvolve[i][1] + " " + pEvolve[i][2] + " " + pEvolve[i][3]);
+				for (int j = 0; j<numGames; j++) {
+					int rowsCleared = RunAI(pEvolve[i], 30, 700, false);
+					// System.out.println("Game " + (j+1)+ ": "+ rowsCleared);
+					// System.out.printf("%d", fitnessP.first);
+					// breakpoint;
+					fitnessP[i].first += rowsCleared;
+					
+					gameNumber++;
+				}
+				if(fitnessP[i].first > maxScore) {
+					maxScore = fitnessP[i].first;
 				}
 
-				// Get the two most fittest from this random selection  
-				IntegerPair maxFitness = new IntegerPair(-1, -1); // Value, Index
-				IntegerPair maxFitnessSecond = new IntegerPair(-1, -1);
+			}
+			System.out.printf("Game: %d TotalScore %d\n", gameNumber, maxScore);
+			// System.out.println("BestVector "+ finalParameters[0] + " " + finalParameters[1] + " " + finalParameters[2] + " " + finalParameters[3]);
+			// Select parents and produce offsprings part 
+			int offspringCount = 0;
+			int tenPercent = (int)(populationCount*0.1);
+			int thirtyPercent = (int)(populationCount*0.3);
+			double[][] offsprings = new double[populationCount][heuristicsCount];
+			System.out.println("Selecting parents");
+			// We want create offsprings up to 30% of the population
+			while(offspringCount < thirtyPercent){
 
-				for(int i = 0; i < (populationCount/100)*10; i++){
-					if(randomSelectionFitness[i] > maxFitness.first){
-						maxFitnessSecond.first = maxFitness.first;
-						maxFitnessSecond.second = maxFitness.second;
-						maxFitness.first = randomSelectionFitness[i];
-						maxFitness.second = i;
-
-					} else if (randomSelectionFitness[i] > maxFitnessSecond.first && randomSelectionFitness[i] < maxFitness.first){
-						maxFitnessSecond.first = randomSelectionFitness[i];
-						maxFitnessSecond.second = i;
+					// Select 10% of the population at random
+					double[][] randomSelection = new double[tenPercent][heuristicsCount];
+					int[] randomSelectionFitness = new int[tenPercent];
+					int count = 0;
+					for(int i = 0; i < populationCount; i += tenPercent) {
+						int randIndex = i + randnum.nextInt(tenPercent);
+						randomSelection[count] = pEvolve[randIndex];
+						randomSelectionFitness[count++] = fitnessP[randIndex].first;
 					}
-				}
 
-				int f_p1 = maxFitness.first;
-				int f_p2 = maxFitnessSecond.first;
-				double[] p1 = randomSelection[maxFitness.second];
-				double[] p2 = randomSelection[maxFitnessSecond.second];
-				double[] offspring = new double[heuristicsCount];
+					// Get the two most fittest from this random selection  
+					IntegerPair maxFitness = new IntegerPair(-1, -1); // Value, Index
+					IntegerPair maxFitnessSecond = new IntegerPair(-1, -1);
 
-				System.out.println("Elite parent1: " + p1[0] + " " + p1[1] + " " + p1[2] + " " + p1[3] + " with fitness " + f_p1);
-				System.out.println("Elite parent2: " + p2[0] + " " + p2[1] + " " + p2[2] + " " + p1[3] + " with fitness " + f_p2);
+					for(int i = 0; i < tenPercent; i++){
+						if(randomSelectionFitness[i] > maxFitness.first){
+							maxFitnessSecond.first = maxFitness.first;
+							maxFitnessSecond.second = maxFitness.second;
+							maxFitness.first = randomSelectionFitness[i];
+							maxFitness.second = i;
 
-				// Weighted average crossover
-				for(int i = 0; i < heuristicsCount; i++)
-					offspring[i] = p1[i] * f_p1 + p2[i] * f_p2;
-				
-				// Mutation
-				if(Math.random() < 0.05){
-					offspring[randnum.nextInt(4)] += (-2 + 4 * randnum.nextDouble());
-				}	
+						} else if (randomSelectionFitness[i] > maxFitnessSecond.first && randomSelectionFitness[i] < maxFitness.first){
+							maxFitnessSecond.first = randomSelectionFitness[i];
+							maxFitnessSecond.second = i;
+						}
+					}
 
-				offsprings[offspringCount++] = offspring;
+					int f_p1 = maxFitness.first;
+					int f_p2 = maxFitnessSecond.first;
+					double[] p1 = randomSelection[maxFitness.second];
+					double[] p2 = randomSelection[maxFitnessSecond.second];
+					double[] offspring = new double[heuristicsCount];
+
+					// System.out.println("Elite parent1: " + p1[0] + " " + p1[1] + " " + p1[2] + " " + p1[3] + " with fitness " + f_p1);
+					// System.out.println("Elite parent2: " + p2[0] + " " + p2[1] + " " + p2[2] + " " + p1[3] + " with fitness " + f_p2);
+
+					// Weighted average crossover
+					for(int i = 0; i < heuristicsCount; i++)
+						offspring[i] = p1[i] * f_p1 + p2[i] * f_p2;
+					
+					// Mutation
+					if(randnum.nextDouble() < 0.05){
+						offspring[randnum.nextInt(4)] += (-2 + 4 * randnum.nextDouble());
+					}	
+
+					offsprings[offspringCount++] = offspring;
+
+			}
+			System.out.println("Replacing offspring");
+			// NOW we need to get the weakest 30%, delete them and replace with new offsprings array
+			// Then we can run the evolution again
+			Arrays.sort(fitnessP);
+			for (int i = 0; i < thirtyPercent; i++ ) {
+				pEvolve[fitnessP[i].second] = offsprings[i];
+			}
+			highestScore = RunAI(pEvolve[fitnessP[populationCount -1].second], 20, Integer.MAX_VALUE, true);
+			// if(rowsCleared > highestScore) { 
+			finalParameters = pEvolve[fitnessP[populationCount -1].second];
+			System.out.println("BestVector "+ finalParameters[0] + " " + finalParameters[1] + " " + finalParameters[2] + " " + finalParameters[3]);
+			// }
+			System.out.printf("TotalScore of best new population: %d\n", rowsCleared);
+			
 
 		}
-
-		// NOW we need to get the weakest 30%, delete them and replace with new offsprings array
-		// Then we can run the evolution again
-		/*Random rand = new Random(); 
-		LinkedList crossOver = new LinkedList();
-		while(crossOver.size() <= populationCount/3) {
-			// select 10%
-			// select fittest individuals and add them to the crossOver population
-		}*/
-
 
 		// Run next evolution
 		return finalParameters;
@@ -517,20 +552,29 @@ public class PlayerSkeleton {
 			// Returns empty, not yet finished
 			System.out.println("Completed evolution with: " + weightFactors[0] + " " + weightFactors[1] + " " + weightFactors[2] + " " + weightFactors[3]);
 		}
-		System.out.println("You have completed "+ RunAI(weightFactors, 20, Integer.MAX_VALUE)+" rows.");
+		System.out.println("You have completed "+ RunAI(weightFactors, 20, Integer.MAX_VALUE, true)+" rows.");
 	}
 	
 }
 
-class IntegerPair{
+class IntegerPair implements Comparable<IntegerPair>{
 
-	public int first;
-	public int second;
+	public int first = 0;
+	public int second = 0;
 
 	public IntegerPair(int first, int second){
 		this.first = first;
 		this.second = second;
 	}
+	public IntegerPair()
+    {
+
+    }
+
+    @Override
+    public int compareTo(IntegerPair o) {
+        return first < o.first ? -1 : first > o.first ? 1 : 0;
+    }
 
 }
 
