@@ -311,7 +311,7 @@ public class PlayerSkeleton {
 	/**
 	 * Commented out but might used for parallel
 	 */
-	// public List<Output> processInputs(List<Input> inputs)
+	// public int processInputs(double pEvolve[])
 	//         throws InterruptedException, ExecutionException {
 
 	//     int threads = Runtime.getRuntime().availableProcessors();
@@ -417,7 +417,7 @@ public class PlayerSkeleton {
 		// When to stop?
 		while(highestScore < Integer.MAX_VALUE) {
 			generationCount++;
-			System.out.printf("Generation: %d", generationCount);
+			System.out.printf("Generation: %d\n", generationCount);
 			//int numThreads = 4;
 			//ArrayList<Thread> gameThreads = new ArrayList<Thread>();
 
@@ -439,7 +439,7 @@ public class PlayerSkeleton {
 			//This is now computed within the thread (not complete)
 			int gameNumber = 0;
 			int maxScore = -1;
-			
+			System.out.println("Starting generation playing");
 			for(int i = 0; i < populationCount; i++){
 				fitnessP[i] = new IntegerPair(0, i);
 
@@ -459,8 +459,8 @@ public class PlayerSkeleton {
 				}
 
 			}
-			System.out.printf("Game: %d TotalScore %d\n", gameNumber, maxScore);
-			System.out.println("BestVector "+ finalParameters[0] + " " + finalParameters[1] + " " + finalParameters[2] + " " + finalParameters[3]);
+			System.out.printf("Max TotalScore %d\n", maxScore);
+			System.out.println("BestVector of current generation"+ finalParameters[0] + " " + finalParameters[1] + " " + finalParameters[2] + " " + finalParameters[3]);
 			// Select parents and produce offsprings part 
 			int offspringCount = 0;
 			int tenPercent = (int)(populationCount*0.1);
@@ -536,15 +536,23 @@ public class PlayerSkeleton {
 			// NOW we need to get the weakest 30%, delete them and replace with new offsprings array
 			// Then we can run the evolution again
 			Arrays.sort(fitnessP);
+			// for (int i = 0; i < populationCount; i++) {
+			// 	if(fitnessP[i].second == 0)
+			// 		System.out.println(fitnessP[i].first + " " + fitnessP[i].second);
+			// }
 			for (int i = 0; i < thirtyPercent; i++ ) {
 				pEvolve[fitnessP[i].second] = offsprings[i];
 			}
-			highestScore = RunAI(pEvolve[fitnessP[populationCount -1].second], 20, Integer.MAX_VALUE, true);
-			// if(rowsCleared > highestScore) { 
 			finalParameters = pEvolve[fitnessP[populationCount -1].second];
+			System.out.println("Playing game with bestVector so far");
 			System.out.println("BestVector "+ finalParameters[0] + " " + finalParameters[1] + " " + finalParameters[2] + " " + finalParameters[3]);
+			highestScore = RunAI(finalParameters, 20, Integer.MAX_VALUE, true);
+			System.out.printf("Score of bestVector so far: %d\n", highestScore);
+			// if(rowsCleared > highestScore) { 
+			
+			
 			// }
-			System.out.printf("TotalScore of best new population: %d\n", highestScore);
+			
 			
 
 		}
