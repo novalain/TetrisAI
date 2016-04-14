@@ -104,6 +104,7 @@ public class PlayerSkeleton {
 		double completeLines = 0;
 		double numHoles = 0;
 		double bumpiness = 0;
+		double maxHeight = 0;
 
 
 		double bumpinessNew = 0;
@@ -112,6 +113,7 @@ public class PlayerSkeleton {
 
 		// Calculate Height and Bumpiness
 		for(int col = 0; col<maxCol; col++){
+			if(newTop[col] > maxHeight) maxHeight = newTop[col] -1;
 			height+= newTop[col];
 			if(newTop[col] < lowestTop) lowestTop = newTop[col];
 			if(col!= 0) {
@@ -143,7 +145,7 @@ public class PlayerSkeleton {
 			completeLines += isCompleted;
 		}
 
-		return height*weightFactors[0] + completeLines*weightFactors[1] + numHoles*weightFactors[2] + bumpiness*weightFactors[3];
+		return height*weightFactors[0] + completeLines*weightFactors[1] + numHoles*weightFactors[2] + bumpiness*weightFactors[3] + maxHeight*weightFactors[4];
 	
 	}
 
@@ -377,23 +379,23 @@ public class PlayerSkeleton {
 	 * Creates an initial population of randomly generated unit vectors in the 4D unit sphere for the 
 	 * heuristic values
 	 * @param populationCount The size of the desired population
-	 * @param weightsCount Number of desired weight factors in each individual
+	 * @param heuristicsCount Number of desired weight factors in each individual
 	 * @return Returns the initial population
 	 */
-	public static double[][] getIntialPopulation(int populationCount, int weightsCount){
-		double pEvolve[][] = new double[populationCount][weightsCount];
+	public static double[][] getIntialPopulation(int populationCount, int heuristicsCount){
+		double pEvolve[][] = new double[populationCount][heuristicsCount];
 		//int fitnessP[] = new int[populationCount];
 		
 		for(int i = 0; i< populationCount; i++) {
 			//fitnessP[i].first = 0;
 			double magnitude = 0.0;
 
-			for (int j = 0; j<weightsCount; j++) {
+			for (int j = 0; j<heuristicsCount; j++) {
 				pEvolve[i][j] = randnum.nextDouble()*2.0 - 1.0;
 				magnitude += Math.pow(pEvolve[i][j], 2);
 			}
 			magnitude = Math.sqrt(magnitude);
-			for (int j = 0; j<weightsCount; j++) {
+			for (int j = 0; j<heuristicsCount; j++) {
 				pEvolve[i][j] /= magnitude;
 			}
 		}
@@ -516,7 +518,7 @@ public class PlayerSkeleton {
 		
 					// Mutation
 					if(randnum.nextDouble() < 0.05){
-						offspring[randnum.nextInt(4)] += (-2 + 4 * randnum.nextDouble());
+						offspring[randnum.nextInt(heuristicsCount)] += (-2 + 4 * randnum.nextDouble());
 					}
 
 					// Normalize 
@@ -536,17 +538,22 @@ public class PlayerSkeleton {
 			System.out.println("Replacing offspring");
 			// NOW we need to get the weakest 30%, delete them and replace with new offsprings array
 			// Then we can run the evolution again
+			// System.out.println("Sorting");
 			Arrays.sort(fitnessP);
+			// System.out.println("Sorted");
 			// for (int i = 0; i < populationCount; i++) {
 			// 	if(fitnessP[i].second == 0)
 			// 		System.out.println(fitnessP[i].first + " " + fitnessP[i].second);
 			// }
+			// 
 			for (int i = 0; i < thirtyPercent; i++ ) {
+				// System.out.println("Replacing: " + fitnessP[i].first);
 				pEvolve[fitnessP[i].second] = offsprings[i];
+				// System.out.println("Replacing");
 			}
 			finalParameters = pEvolve[fitnessP[populationCount -1].second];
 			System.out.println("Playing game with bestVector so far");
-			System.out.println("BestVector "+ finalParameters[0] + " " + finalParameters[1] + " " + finalParameters[2] + " " + finalParameters[3]);
+			System.out.println("BestVector "+ finalParameters[0] + " " + finalParameters[1] + " " + finalParameters[2] + " " + finalParameters[3] + " " + finalParameters[4]);
 			highestScore = RunAI(finalParameters, 20, Integer.MAX_VALUE, true);
 			System.out.printf("Score of bestVector so far: %d\n", highestScore);
 			// if(rowsCleared > highestScore) { 
@@ -569,12 +576,12 @@ public class PlayerSkeleton {
 	 */
 	public static void main(String[] args) {
 		randnum = new Random();
-		double weightFactors[] = {-0.510066, 0.760666, -0.35663, -0.184483};
+		double weightFactors[] = {-0.510066, 0.760666, -0.35663, -0.184483, 0};
 		
 		if(args.length > 0){
-			weightFactors = RunEvolution(4);
+			weightFactors = RunEvolution(5);
 			// Returns empty, not yet finished
-			System.out.println("Completed evolution with: " + weightFactors[0] + " " + weightFactors[1] + " " + weightFactors[2] + " " + weightFactors[3]);
+			System.out.println("Completed evolution with: " + weightFactors[0] + " " + weightFactors[1] + " " + weightFactors[2] + " " + weightFactors[3]  + " " + weightFactors[4]);
 		}
 		System.out.println("You have completed "+ RunAI(weightFactors, 20, Integer.MAX_VALUE, true)+" rows.");
 	}
