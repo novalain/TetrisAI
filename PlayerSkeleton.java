@@ -394,7 +394,6 @@ public class PlayerSkeleton {
 			}
 			for (int j = 0; j<weightsCount; j++) {
 				pEvolve[i][j] /= magnitude;
-				
 			}
 		}
 		return pEvolve;
@@ -502,21 +501,36 @@ public class PlayerSkeleton {
 					double[] p2 = randomSelection[maxFitnessSecond.second];
 					double[] offspring = new double[heuristicsCount];
 
-					// System.out.println("Elite parent1: " + p1[0] + " " + p1[1] + " " + p1[2] + " " + p1[3] + " with fitness " + f_p1);
-					// System.out.println("Elite parent2: " + p2[0] + " " + p2[1] + " " + p2[2] + " " + p1[3] + " with fitness " + f_p2);
+					System.out.println("Elite parent1: " + p1[0] + " " + p1[1] + " " + p1[2] + " " + p1[3] + " with fitness " + f_p1);
+					System.out.println("Elite parent2: " + p2[0] + " " + p2[1] + " " + p2[2] + " " + p1[3] + " with fitness " + f_p2);
 
+					double[] test = new double[heuristicsCount];
 					// Weighted average crossover
-					for(int i = 0; i < heuristicsCount; i++)
+					for(int i = 0; i < heuristicsCount; i++){
 						offspring[i] = p1[i] * f_p1 + p2[i] * f_p2;
-					
+						test[i] = p1[i] * f_p1 + p2[i] * f_p2;
+					}
+		
 					// Mutation
 					if(randnum.nextDouble() < 0.05){
 						offspring[randnum.nextInt(4)] += (-2 + 4 * randnum.nextDouble());
-					}	
+					}
+
+					// Normalize 
+					double magnitude = 0;
+			
+					for (int i = 0; i<heuristicsCount; i++) {
+						magnitude += Math.abs(offspring[i]);
+					}
+
+					for (int i = 0; i<heuristicsCount; i++) {
+						offspring[i] /= magnitude;
+					}
 
 					offsprings[offspringCount++] = offspring;
 
 			}
+
 			System.out.println("Replacing offspring");
 			// NOW we need to get the weakest 30%, delete them and replace with new offsprings array
 			// Then we can run the evolution again
