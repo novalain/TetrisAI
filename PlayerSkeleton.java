@@ -554,7 +554,10 @@ public class PlayerSkeleton {
 			finalParameters = pEvolve[fitnessP[populationCount -1].second];
 			System.out.println("Playing game with bestVector so far");
 			System.out.println("BestVector "+ finalParameters[0] + " " + finalParameters[1] + " " + finalParameters[2] + " " + finalParameters[3] + " " + finalParameters[4]);
-			highestScore = RunAI(finalParameters, 20, Integer.MAX_VALUE, true);
+			highestScore = 0;
+			for (int j = 0; j < 10; j++) {
+				highestScore += RunAI(finalParameters, 20, Integer.MAX_VALUE, true);
+			}
 			System.out.printf("Score of bestVector so far: %d\n", highestScore);
 			// if(rowsCleared > highestScore) { 
 			
