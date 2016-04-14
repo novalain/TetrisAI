@@ -454,11 +454,12 @@ public class PlayerSkeleton {
 				}
 				if(fitnessP[i].first > maxScore) {
 					maxScore = fitnessP[i].first;
+					finalParameters = pEvolve[i];
 				}
 
 			}
 			System.out.printf("Game: %d TotalScore %d\n", gameNumber, maxScore);
-			// System.out.println("BestVector "+ finalParameters[0] + " " + finalParameters[1] + " " + finalParameters[2] + " " + finalParameters[3]);
+			System.out.println("BestVector "+ finalParameters[0] + " " + finalParameters[1] + " " + finalParameters[2] + " " + finalParameters[3]);
 			// Select parents and produce offsprings part 
 			int offspringCount = 0;
 			int tenPercent = (int)(populationCount*0.1);
