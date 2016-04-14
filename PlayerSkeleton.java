@@ -390,8 +390,9 @@ public class PlayerSkeleton {
 
 			for (int j = 0; j<weightsCount; j++) {
 				pEvolve[i][j] = randnum.nextDouble()*2.0 - 1.0;
-				magnitude += Math.abs(pEvolve[i][j]);
+				magnitude += Math.pow(pEvolve[i][j], 2);
 			}
+			magnitude = Math.sqrt(magnitude);
 			for (int j = 0; j<weightsCount; j++) {
 				pEvolve[i][j] /= magnitude;
 			}
@@ -502,14 +503,14 @@ public class PlayerSkeleton {
 					double[] p2 = randomSelection[maxFitnessSecond.second];
 					double[] offspring = new double[heuristicsCount];
 
-					System.out.println("Elite parent1: " + p1[0] + " " + p1[1] + " " + p1[2] + " " + p1[3] + " with fitness " + f_p1);
-					System.out.println("Elite parent2: " + p2[0] + " " + p2[1] + " " + p2[2] + " " + p1[3] + " with fitness " + f_p2);
+					// System.out.println("Elite parent1: " + p1[0] + " " + p1[1] + " " + p1[2] + " " + p1[3] + " with fitness " + f_p1);
+					// System.out.println("Elite parent2: " + p2[0] + " " + p2[1] + " " + p2[2] + " " + p1[3] + " with fitness " + f_p2);
 
-					double[] test = new double[heuristicsCount];
+					// double[] test = new double[heuristicsCount];
 					// Weighted average crossover
 					for(int i = 0; i < heuristicsCount; i++){
 						offspring[i] = p1[i] * f_p1 + p2[i] * f_p2;
-						test[i] = p1[i] * f_p1 + p2[i] * f_p2;
+						// test[i] = p1[i] * f_p1 + p2[i] * f_p2;
 					}
 		
 					// Mutation
@@ -520,8 +521,9 @@ public class PlayerSkeleton {
 					// Normalize 
 					double magnitude = 0;
 					for (int i = 0; i<heuristicsCount; i++) {
-						magnitude += Math.abs(offspring[i]);
+						magnitude += Math.pow(offspring[i], 2);
 					}
+					magnitude = Math.sqrt(magnitude);
 					for (int i = 0; i<heuristicsCount; i++) {
 						offspring[i] /= magnitude;
 					}
