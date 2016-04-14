@@ -529,7 +529,7 @@ public class PlayerSkeleton {
 			finalParameters = pEvolve[fitnessP[populationCount -1].second];
 			System.out.println("BestVector "+ finalParameters[0] + " " + finalParameters[1] + " " + finalParameters[2] + " " + finalParameters[3]);
 			// }
-			System.out.printf("TotalScore of best new population: %d\n", rowsCleared);
+			System.out.printf("TotalScore of best new population: %d\n", highestScore);
 			
 
 		}
