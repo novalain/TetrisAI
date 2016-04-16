@@ -658,14 +658,14 @@ public class PlayerSkeleton {
 		// double weightFactors[] = {-0.510066, 0.760666, -0.35663, -0.184483};// 0};
 		// Dude's weights
 		// double weightFactors[] =  {-4.500158825082766, 3.4181268101392694, -3.2178882868487753, -9.348695305445199, -7.899265427351652, -3.3855972247263626};
-		double weightFactors[] = {-2.1472553592987946,5.46883837144299,-1.2945510371937452,-4.521200744605782, -5.510648376902374,-1.1908554239402918};
+		double weightFactors[] = {-3.1472553592987946, 2.46883837144299,-2.2945510371937452,-7.521200744605782, -6.510648376902374,-2.1908554239402918}; // My best found values
 		if(args.length > 0){
 			weightFactors = RunEvolution(6);
 			// Returns empty, not yet finished
 			System.out.println("Completed evolution with: " + weightFactors[0] + " " + weightFactors[1] + " " + weightFactors[2] + " " + weightFactors[3]  + " " + weightFactors[4]);
 		}
 
-		System.out.println("You have completed "+ RunAI(weightFactors, 30, Integer.MAX_VALUE, true) +" rows.");
+		System.out.println("You have completed "+ RunAI(weightFactors, 30, Integer.MAX_VALUE, false) +" rows.");
 	}
 	
 }
