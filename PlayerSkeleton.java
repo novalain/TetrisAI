@@ -504,8 +504,8 @@ public class PlayerSkeleton {
 	 */
 	public static double[] RunEvolution(int heuristicsCount){
 		System.out.println("Starting Evolution");
-		int numGames= 25;
-		int populationCount = 100;
+		int numGames = 5; // 5 games is enough, actually
+		int populationCount = 200; // Biology says we need at least 160
 		double finalParameters[] = new double[heuristicsCount];
 		double pEvolve[][] = getIntialPopulation(populationCount, heuristicsCount);
 		IntegerPair fitnessP[] = new IntegerPair[populationCount];
