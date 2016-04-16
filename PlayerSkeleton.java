@@ -563,17 +563,21 @@ public class PlayerSkeleton {
 	public static class gameThread implements Callable<Integer> {
 		private final double[][] pEvolve;
 		private final int guy;
-		private int rowsCleared;
+		private final int numGames;
+		private int rowsCleared = 0;
 
-		public gameThread(double[][] probEvolve, int i) {
+		public gameThread(double[][] probEvolve, int i, int games) {
 			this.pEvolve = probEvolve;
 			this.guy = i;
+			this.numGames = games;
 		}
 
 		public Integer call() {
 			//System.out.println("Thread " + guy + " has BEGUN");
 			try {
-				rowsCleared = RunAI(pEvolve[guy], 300, Integer.MAX_VALUE, false, runEvoLookahead);
+				for (int i = 0; i < numGames; i++) {
+					rowsCleared += RunAI(pEvolve[guy], 30, Integer.MAX_VALUE, false, runEvoLookahead);
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -583,26 +587,30 @@ public class PlayerSkeleton {
 		}
 	}
 
-	public static int parallelizePerson(double[][] pEvolve, int guy, int numGames){
+	public static IntegerPair[] parallelizePerson(double[][] pEvolve, int numGames, int populationCount){
+
+	    IntegerPair fitnessP[] = new IntegerPair[populationCount];
 
 	    int threads = Runtime.getRuntime().availableProcessors();
 	    //System.out.println("We have: " + threads + " threads to play on");
 	    ExecutorService executor = Executors.newFixedThreadPool(threads);
 	    ArrayList<Future<Integer>> futures = new ArrayList<Future<Integer>>();
-	    // Now that we don't play that many games, we don't use the whole CPU. We were creating 100 background threads
-	    // Which is not efficient due to communication time.
-	    for (int i = 0; i < numGames; i++) {
-	    	Callable<Integer> callable = new gameThread(pEvolve, guy);
+
+	    for(int i = 0; i < populationCount; i++){
+			fitnessP[i] = new IntegerPair(0, i);
+	    	Callable<Integer> callable = new gameThread(pEvolve, i, numGames);
 		    Future<Integer> future = executor.submit(callable);
 		    futures.add(future);
 	    }
 
 	    executor.shutdown();
 
+	    int j = 0;
 	    int totalRows = 0;
 	    for (Future<Integer> future : futures) {
 	    	try {
-	    		totalRows += future.get();
+	    		fitnessP[j].first += future.get();
+	    		j += 1;
 	    		//System.out.println("TotalRows = " + totalRows);
 	    	} catch (InterruptedException e) {
 	    		e.printStackTrace();
@@ -611,7 +619,7 @@ public class PlayerSkeleton {
 	    	}
 	    }
 	    //System.out.println("Guy " + guy + " cleared: " + totalRows + " in total");
-	    return totalRows;
+	    return fitnessP;
 	}
 	//End of Parallelization code
 
@@ -688,11 +696,10 @@ public class PlayerSkeleton {
 	 */
 	public static double[] RunEvolution(int heuristicsCount){
 	
-		int numGames = 1; // 5 games is enough, actually
+		int numGames = 5; // 5 games is enough, actually
 		int populationCount = 200; // Biology says we need at least 160
 		double finalParameters[] = new double[heuristicsCount];
 		double pEvolve[][] = getIntialPopulation(populationCount, heuristicsCount);
-		IntegerPair fitnessP[] = new IntegerPair[populationCount];
 		int averageScore = -1;
 		int generationCount = 0;
 		// When to stop?
@@ -704,28 +711,32 @@ public class PlayerSkeleton {
 
 			int maxScore = -1;
 			System.out.println("Starting generation playing");
-			for(int i = 0; i < populationCount; i++){
-				fitnessP[i] = new IntegerPair(0, i);
 
-				// System.out.println("Playing subject: "+ i + "\n" + pEvolve[i][0] + " " + pEvolve[i][1] + " " + pEvolve[i][2] + " " + pEvolve[i][3]);
-				// for (int j = 0; j<numGames; j++) {
-				// 	//Thread singleGame = new gameThread(pEvolve, i);
-				// 	int rowsCleared = RunAI(pEvolve[i], 30, 700, false);
-				// 	// System.out.println("Game " + (j+1)+ ": "+ rowsCleared);
-				// 	// System.out.printf("%d", fitnessP.first);
-				// 	// breakpoint;
-				// 	fitnessP[i].first += rowsCleared;
+			//New parallelization method
+			IntegerPair fitnessP[] = parallelizePerson(pEvolve, numGames, populationCount);
 
-				// }
-				int totalCleared = parallelizePerson(pEvolve, i, numGames);
-				fitnessP[i].first += totalCleared;
+			// for(int i = 0; i < populationCount; i++){
+			// 	fitnessP[i] = new IntegerPair(0, i);
 
-				// if(fitnessP[i].first > maxScore) {
-				// 	maxScore = fitnessP[i].first;
-				// 	finalParameters = pEvolve[i];
-				// }
+			// 	// System.out.println("Playing subject: "+ i + "\n" + pEvolve[i][0] + " " + pEvolve[i][1] + " " + pEvolve[i][2] + " " + pEvolve[i][3]);
+			// 	// for (int j = 0; j<numGames; j++) {
+			// 	// 	//Thread singleGame = new gameThread(pEvolve, i);
+			// 	// 	int rowsCleared = RunAI(pEvolve[i], 30, 700, false);
+			// 	// 	// System.out.println("Game " + (j+1)+ ": "+ rowsCleared);
+			// 	// 	// System.out.printf("%d", fitnessP.first);
+			// 	// 	// breakpoint;
+			// 	// 	fitnessP[i].first += rowsCleared;
 
-			}
+			// 	// }
+			// 	int totalCleared = parallelizePerson(pEvolve, i, numGames, fitnessP);
+			// 	fitnessP[i].first += totalCleared;
+
+			// 	// if(fitnessP[i].first > maxScore) {
+			// 	// 	maxScore = fitnessP[i].first;
+			// 	// 	finalParameters = pEvolve[i];
+			// 	// }
+
+			//}
 			// System.out.printf("Max TotalScore %d\n", maxScore);
 			// System.out.println("BestVector of current generation");
 			// System.out.println(finalParameters[0] + " " + finalParameters[1] + " " + finalParameters[2] + " " + finalParameters[3]);
