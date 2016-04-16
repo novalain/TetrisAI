@@ -60,7 +60,7 @@ public class PlayerSkeleton {
 		return true;
 	}
 
-/**
+	/**
 	 * @param newField The board state used to calculate the fitness score
 	 * @param newTop An array containing the top indices of the new board
 	 * @param weightFactors The weight factors for the heuristic values.
@@ -174,116 +174,111 @@ public class PlayerSkeleton {
 		columnTransitions*weights[3] + numHoles*weights[4] + wellSums*weights[5];
 		
 	}
-	/**
-	 * @param newField The board state used to calculate the fitness score
-	 * @param newTop An array containing the top indices of the new board
-	 * @param weightFactors The weight factors for the heuristic values.
-	 * @return Returns the fitness score of this board state
-	 */
-	public double fitnessFunction(final int[][] newField, final int[] newTop, double[] weights){
 
-		// Our magic numbers :)
-		int maxRow = newField.length;
-		int maxCol = newField[0].length;
+	// public double fitnessFunction(final int[][] newField, final int[] newTop, double[] weights){
+
+	// 	// Our magic numbers :)
+	// 	int maxRow = newField.length;
+	// 	int maxCol = newField[0].length;
 
 		
-		double completeLines = 0; // Done
-		double numHoles = 0; // Done // Squared
-		// double numHolesSq = 0; // Squared // Done
-		double maxHoleHeight = 0; // Squared // Done
-		// double maxHoleHeightSq = 0; // Done
-		double maxColumnHeight = 0; //Squares // Done
-		// double maxColumnHeightSq = 0; // Done
-		double columnWithHoles = 0; // Done
-		double rowsWithHoles = 0; // Done
-		double totalHeight = 0; // Done
-		double lowestPlayableRow = 0; // Don't know what this is //Have no idea how to do
-		double bumpiness = 0; // Roughness in the paper // Done
-		double maxPitDepth = 0; // Squared // Have no idea how to do
-		// double maxPitDepthSq = 0;
-		double slope = 0; // Done
-		double convexity = 0; // Have no idea how to do
+	// 	double completeLines = 0; // Done
+	// 	double numHoles = 0; // Done // Squared
+	// 	// double numHolesSq = 0; // Squared // Done
+	// 	double maxHoleHeight = 0; // Squared // Done
+	// 	// double maxHoleHeightSq = 0; // Done
+	// 	double maxColumnHeight = 0; //Squares // Done
+	// 	// double maxColumnHeightSq = 0; // Done
+	// 	double columnWithHoles = 0; // Done
+	// 	double rowsWithHoles = 0; // Done
+	// 	double totalHeight = 0; // Done
+	// 	double lowestPlayableRow = 0; // Don't know what this is //Have no idea how to do
+	// 	double bumpiness = 0; // Roughness in the paper // Done
+	// 	double maxPitDepth = 0; // Squared // Have no idea how to do
+	// 	// double maxPitDepthSq = 0;
+	// 	double slope = 0; // Done
+	// 	double convexity = 0; // Have no idea how to do
 		
 
-		double bumpinessNew = 0;
+	// 	double bumpinessNew = 0;
 		
-		int lowestTop = 100;
+	// 	int lowestTop = 100;
 
-		// Calculate Height and Bumpiness
-		for(int col = 0; col<maxCol; col++){
-			if(newTop[col] > maxColumnHeight) maxColumnHeight = newTop[col] -1;
-			totalHeight+= newTop[col];
-			if(newTop[col] < lowestTop) lowestTop = newTop[col];
-			if(col!= 0) {
-				bumpiness += Math.abs(newTop[col]-newTop[col-1]);
-				slope += newTop[col]-newTop[col-1];
-			}	
-		}
-		slope = Math.abs(slope);
+	// 	// Calculate Height and Bumpiness
+	// 	for(int col = 0; col<maxCol; col++){
+	// 		if(newTop[col] > maxColumnHeight) maxColumnHeight = newTop[col] -1;
+	// 		totalHeight+= newTop[col];
+	// 		if(newTop[col] < lowestTop) lowestTop = newTop[col];
+	// 		if(col!= 0) {
+	// 			bumpiness += Math.abs(newTop[col]-newTop[col-1]);
+	// 			slope += newTop[col]-newTop[col-1];
+	// 		}	
+	// 	}
+	// 	slope = Math.abs(slope);
 
-		boolean[] rowIsHoleFree = new boolean[maxRow];
+	// 	boolean[] rowIsHoleFree = new boolean[maxRow];
 
-		// Calculate totalHeight and Bumpiness
-		for (int j = 0; j < maxCol; j++){
-			Boolean columnHoleFree = false;
-			// Boolean representation of if we have found the columns top yet
-			// Do we need to check top row? If we're there we lost right?
-			for (int i = newTop[j]-1; i >= 0; i--) {
-				// If the top filled square of the column is not yet found and we found a filled square 
-				if(newField[i][j] == 0) {
+	// 	// Calculate totalHeight and Bumpiness
+	// 	for (int j = 0; j < maxCol; j++){
+	// 		Boolean columnHoleFree = false;
+	// 		// Boolean representation of if we have found the columns top yet
+	// 		// Do we need to check top row? If we're there we lost right?
+	// 		for (int i = newTop[j]-1; i >= 0; i--) {
+	// 			// If the top filled square of the column is not yet found and we found a filled square 
+	// 			if(newField[i][j] == 0) {
 
-					if(i > maxHoleHeight) maxHoleHeight = i;
-					if(columnHoleFree) {
-						columnWithHoles++;
-						columnHoleFree = true;
-					}
+	// 				if(i > maxHoleHeight) maxHoleHeight = i;
+	// 				if(columnHoleFree) {
+	// 					columnWithHoles++;
+	// 					columnHoleFree = true;
+	// 				}
 
-					if(rowIsHoleFree[i]) {
-						rowsWithHoles++;
-						rowIsHoleFree[i] = true;
-					}
-					//It must be a hole, so increment
-					numHoles += 1;
+	// 				if(rowIsHoleFree[i]) {
+	// 					rowsWithHoles++;
+	// 					rowIsHoleFree[i] = true;
+	// 				}
+	// 				//It must be a hole, so increment
+	// 				numHoles += 1;
 
-				}
-			}
-		}
+	// 			}
+	// 		}
+	// 	}
 		
-		for(int i = 0; i < lowestTop; i++ ){
-			int isCompleted = 1;
-			for(int j = 0; j < State.COLS; j++){
-				if(newField[i][j] == 0){
-					isCompleted = 0;
-					break;
-				}
-			}
-			completeLines += isCompleted;
-		}
-		// System.out.println(completeLines); // Done
-		// System.out.println(numHoles); // Done // Squared
-		// System.out.println(numHolesSq); // Squared // Done
-		// System.out.println(maxHoleHeight); // Squared // Done
-		// System.out.println(maxHoleHeightSq); // Done
-		// System.out.println(maxColumnHeight); //Squares // Done
-		// System.out.println(maxColumnHeightSq); // Done
-		// System.out.println(columnWithHoles); // Done
-		// System.out.println(rowsWithHoles); // Done
-		// System.out.println(totalHeight); // Done
-		// System.out.println(lowestPlayableRow); // Don't know what this is //Have no idea how to do
-		// System.out.println(bumpiness); // Roughness in the paper // Done
-		// System.out.println(maxPitDepth); // Squared // Have no idea how to do
-		// System.out.println(maxPitDepthSq);
-		// System.out.println(slope); // Done
-		// System.out.println(convexity); // Have no idea how to do
-		double score = completeLines*weights[0] + numHoles*weights[1] + Math.pow(numHoles, 2)*weights[2] + maxHoleHeight*weights[3] +
-		Math.pow(maxHoleHeight, 2)*weights[4] + maxColumnHeight*weights[5] + Math.pow(maxColumnHeight, 2)*weights[6] + columnWithHoles*weights[7] +
-		rowsWithHoles*weights[8] + totalHeight*weights[9] + lowestPlayableRow*weights[10] + bumpiness*weights[11] + maxPitDepth*weights[12] + 
-		Math.pow(maxPitDepth,2)*weights[13] + slope*weights[14] + convexity*weights[15];
-		// System.out.println(score);
-		return score;
-		//return totalHeight*weights[0] + completeLines*weights[1] + numHoles*weights[2] + bumpiness*weights[3];
+	// 	for(int i = 0; i < lowestTop; i++ ){
+	// 		int isCompleted = 1;
+	// 		for(int j = 0; j < State.COLS; j++){
+	// 			if(newField[i][j] == 0){
+	// 				isCompleted = 0;
+	// 				break;
+	// 			}
+	// 		}
+	// 		completeLines += isCompleted;
+	// 	}
+	// 	// System.out.println(completeLines); // Done
+	// 	// System.out.println(numHoles); // Done // Squared
+	// 	// System.out.println(numHolesSq); // Squared // Done
+	// 	// System.out.println(maxHoleHeight); // Squared // Done
+	// 	// System.out.println(maxHoleHeightSq); // Done
+	// 	// System.out.println(maxColumnHeight); //Squares // Done
+	// 	// System.out.println(maxColumnHeightSq); // Done
+	// 	// System.out.println(columnWithHoles); // Done
+	// 	// System.out.println(rowsWithHoles); // Done
+	// 	// System.out.println(totalHeight); // Done
+	// 	// System.out.println(lowestPlayableRow); // Don't know what this is //Have no idea how to do
+	// 	// System.out.println(bumpiness); // Roughness in the paper // Done
+	// 	// System.out.println(maxPitDepth); // Squared // Have no idea how to do
+	// 	// System.out.println(maxPitDepthSq);
+	// 	// System.out.println(slope); // Done
+	// 	// System.out.println(convexity); // Have no idea how to do
+	// 	double score = completeLines*weights[0] + numHoles*weights[1] + Math.pow(numHoles, 2)*weights[2] + maxHoleHeight*weights[3] +
+	// 	Math.pow(maxHoleHeight, 2)*weights[4] + maxColumnHeight*weights[5] + Math.pow(maxColumnHeight, 2)*weights[6] + columnWithHoles*weights[7] +
+	// 	rowsWithHoles*weights[8] + totalHeight*weights[9] + lowestPlayableRow*weights[10] + bumpiness*weights[11] + maxPitDepth*weights[12] + 
+	// 	Math.pow(maxPitDepth,2)*weights[13] + slope*weights[14] + convexity*weights[15];
+	// 	// System.out.println(score);
+	// 	return score;
+	// 	//return totalHeight*weights[0] + completeLines*weights[1] + numHoles*weights[2] + bumpiness*weights[3];
 	
-	}
+	// }
 
 	/**
 	 * Performs a deep copy of our old state to new state
@@ -409,7 +404,8 @@ public class PlayerSkeleton {
 	    //System.out.println("We have: " + threads + " threads to play on");
 	    ExecutorService executor = Executors.newFixedThreadPool(threads);
 	    ArrayList<Future<Integer>> futures = new ArrayList<Future<Integer>>();
-
+	    // Now that we don't play that many games, we don't use the whole CPU. We were creating 100 background threads
+	    // Which is not efficient due to communication time.
 	    for (int i = 0; i < numGames; i++) {
 	    	Callable<Integer> callable = new gameThread(pEvolve, guy);
 		    Future<Integer> future = executor.submit(callable);
@@ -509,10 +505,11 @@ public class PlayerSkeleton {
 		double finalParameters[] = new double[heuristicsCount];
 		double pEvolve[][] = getIntialPopulation(populationCount, heuristicsCount);
 		IntegerPair fitnessP[] = new IntegerPair[populationCount];
-		int highestScore = -1;
+		int averageScore = -1;
 		int generationCount = 0;
 		// When to stop?
-		while(highestScore < Integer.MAX_VALUE) {
+		
+		while(averageScore < Integer.MAX_VALUE - 1 && generationCount < 50) {
 			generationCount++;
 			System.out.printf("Generation: %d\n", generationCount);
 
@@ -637,17 +634,12 @@ public class PlayerSkeleton {
 			System.out.println("Playing game with bestVector so far");
 			System.out.println("BestVector "+ finalParameters[0] + " " + finalParameters[1] + " " + finalParameters[2] + " " + finalParameters[3]
 				+ " " + finalParameters[4] + " " + finalParameters[5]);
-			highestScore = 0;
+			averageScore = 0;
 			for (int j = 0; j < 3; j++) {
-				highestScore += RunAI(finalParameters, 20, Integer.MAX_VALUE, false);
+				averageScore += RunAI(finalParameters, 20, Integer.MAX_VALUE, false);
 			}
-			System.out.printf("Average score of bestVector in generation: %d\n", highestScore/3);
-			// if(rowsCleared > highestScore) { 
-			
-			
-			// }
-			
-			
+			averageScore /= 3;
+			System.out.printf("Average score of bestVector in generation: %d\n", averageScore);
 
 		}
 
@@ -664,6 +656,7 @@ public class PlayerSkeleton {
 		int sumOfScore =0;
 		randnum = new Random();
 		// double weightFactors[] = {-0.510066, 0.760666, -0.35663, -0.184483};// 0};
+		// Dude's weights
 		// double weightFactors[] =  {-4.500158825082766, 3.4181268101392694, -3.2178882868487753, -9.348695305445199, -7.899265427351652, -3.3855972247263626};
 		double weightFactors[] = {-2.1472553592987946,5.46883837144299,-1.2945510371937452,-4.521200744605782, -5.510648376902374,-1.1908554239402918};
 		if(args.length > 0){
@@ -671,11 +664,8 @@ public class PlayerSkeleton {
 			// Returns empty, not yet finished
 			System.out.println("Completed evolution with: " + weightFactors[0] + " " + weightFactors[1] + " " + weightFactors[2] + " " + weightFactors[3]  + " " + weightFactors[4]);
 		}
-		for(int i = 0; i< 3; i++){
-			sumOfScore+=RunAI(weightFactors, 30, Integer.MAX_VALUE, true);
-		}
 
-		System.out.println("You have completed an average of "+ sumOfScore/3 +" rows.");
+		System.out.println("You have completed "+ RunAI(weightFactors, 30, Integer.MAX_VALUE, true) +" rows.");
 	}
 	
 }
