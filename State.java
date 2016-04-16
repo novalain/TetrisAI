@@ -152,8 +152,10 @@ public class State{
 		return turn;
 	}
 	
+	public int[][] getLegalMovesFromPiece(int i){
+		return legalMoves[i];
+	}
 	
-
 	//random integer, returns 0-6
 	private int randomPiece() {
 		return (int)(Math.random()*N_PIECES);
