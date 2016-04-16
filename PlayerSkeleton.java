@@ -580,8 +580,8 @@ public class PlayerSkeleton {
 						}
 					}
 
-					int f_p1 = maxFitness.first;
-					int f_p2 = maxFitnessSecond.first;
+					// int f_p1 = maxFitness.first;
+					// int f_p2 = maxFitnessSecond.first;
 					double[] p1 = randomSelection[maxFitness.second];
 					double[] p2 = randomSelection[maxFitnessSecond.second];
 					double[] offspring = new double[heuristicsCount];
@@ -598,8 +598,9 @@ public class PlayerSkeleton {
 					}
 		
 					// Mutation
-					if(randnum.nextDouble() < 0.15){
-						offspring[randnum.nextInt(heuristicsCount)] += (-2 + 4*randnum.nextDouble());
+					if(randnum.nextDouble() < 0.10){
+						int heuristicMutation = randnum.nextInt(heuristicsCount);
+						offspring[heuristicMutation] += (offspring[heuristicMutation]*-0.1 + offspring[heuristicMutation]*0.2*randnum.nextDouble());
 					}
 
 					// // Normalize 
@@ -635,7 +636,7 @@ public class PlayerSkeleton {
 			finalParameters = pEvolve[fitnessP[populationCount -1].second];
 			System.out.println("Playing game with bestVector so far");
 			System.out.println("BestVector "+ finalParameters[0] + " " + finalParameters[1] + " " + finalParameters[2] + " " + finalParameters[3]
-				+ finalParameters[4] + " " + finalParameters[5]);
+				+ " " + finalParameters[4] + " " + finalParameters[5]);
 			highestScore = 0;
 			for (int j = 0; j < 3; j++) {
 				highestScore += RunAI(finalParameters, 20, Integer.MAX_VALUE, false);
@@ -671,7 +672,7 @@ public class PlayerSkeleton {
 			System.out.println("Completed evolution with: " + weightFactors[0] + " " + weightFactors[1] + " " + weightFactors[2] + " " + weightFactors[3]  + " " + weightFactors[4]);
 		}
 		for(int i = 0; i< 3; i++){
-			sumOfScore+=RunAI(weightFactors, 3000, Integer.MAX_VALUE, false);
+			sumOfScore+=RunAI(weightFactors, 30, Integer.MAX_VALUE, true);
 		}
 
 		System.out.println("You have completed an average of "+ sumOfScore/3 +" rows.");
