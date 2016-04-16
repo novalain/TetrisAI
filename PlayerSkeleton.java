@@ -504,8 +504,8 @@ public class PlayerSkeleton {
 	 */
 	public static double[] RunEvolution(int heuristicsCount){
 		System.out.println("Starting Evolution");
-		int numGames= 100;
-		int populationCount = 1000;
+		int numGames= 25;
+		int populationCount = 100;
 		double finalParameters[] = new double[heuristicsCount];
 		double pEvolve[][] = getIntialPopulation(populationCount, heuristicsCount);
 		IntegerPair fitnessP[] = new IntegerPair[populationCount];
@@ -516,13 +516,13 @@ public class PlayerSkeleton {
 			generationCount++;
 			System.out.printf("Generation: %d\n", generationCount);
 
-			int gameNumber = 0;
+
 			int maxScore = -1;
 			System.out.println("Starting generation playing");
 			for(int i = 0; i < populationCount; i++){
 				fitnessP[i] = new IntegerPair(0, i);
 
-				// // System.out.println("Playing subject: "+ i + "\n" + pEvolve[i][0] + " " + pEvolve[i][1] + " " + pEvolve[i][2] + " " + pEvolve[i][3]);
+				// System.out.println("Playing subject: "+ i + "\n" + pEvolve[i][0] + " " + pEvolve[i][1] + " " + pEvolve[i][2] + " " + pEvolve[i][3]);
 				// for (int j = 0; j<numGames; j++) {
 				// 	//Thread singleGame = new gameThread(pEvolve, i);
 				// 	int rowsCleared = RunAI(pEvolve[i], 30, 700, false);
@@ -530,16 +530,15 @@ public class PlayerSkeleton {
 				// 	// System.out.printf("%d", fitnessP.first);
 				// 	// breakpoint;
 				// 	fitnessP[i].first += rowsCleared;
-					
-				// 	gameNumber++;
+
 				// }
 				int totalCleared = parallelizePerson(pEvolve, i, numGames);
 				fitnessP[i].first += totalCleared;
 
-				if(fitnessP[i].first > maxScore) {
-					maxScore = fitnessP[i].first;
-					finalParameters = pEvolve[i];
-				}
+				// if(fitnessP[i].first > maxScore) {
+				// 	maxScore = fitnessP[i].first;
+				// 	finalParameters = pEvolve[i];
+				// }
 
 			}
 			// System.out.printf("Max TotalScore %d\n", maxScore);
@@ -593,13 +592,14 @@ public class PlayerSkeleton {
 					// double[] test = new double[heuristicsCount];
 					// Weighted average crossover
 					for(int i = 0; i < heuristicsCount; i++){
-						offspring[i] = p1[i] * f_p1 + p2[i] * f_p2;
+						offspring[i] = ((randnum.nextDouble() > 0.5) ? p1[i]:p2[i]);
+						// offspring[i] = p1[i] * f_p1 + p2[i] * f_p2;
 						// test[i] = p1[i] * f_p1 + p2[i] * f_p2;
 					}
 		
 					// Mutation
-					if(randnum.nextDouble() < 0.05){
-						offspring[randnum.nextInt(heuristicsCount)] += (-.2 + .4 * randnum.nextDouble());
+					if(randnum.nextDouble() < 0.15){
+						offspring[randnum.nextInt(heuristicsCount)] += (-2 + 4*randnum.nextDouble());
 					}
 
 					// // Normalize 
@@ -628,18 +628,19 @@ public class PlayerSkeleton {
 			// }
 			// 
 			for (int i = 0; i < thirtyPercent; i++ ) {
-				System.out.println("Replacing: " + fitnessP[i].first);
+				// System.out.println("Replacing: " + fitnessP[i].first);
 				pEvolve[fitnessP[i].second] = offsprings[i];
 				// System.out.println("Replacing");
 			}
 			finalParameters = pEvolve[fitnessP[populationCount -1].second];
 			System.out.println("Playing game with bestVector so far");
-			// System.out.println("BestVector "+ finalParameters[0] + " " + finalParameters[1] + " " + finalParameters[2] + " " + finalParameters[3]);
+			System.out.println("BestVector "+ finalParameters[0] + " " + finalParameters[1] + " " + finalParameters[2] + " " + finalParameters[3]
+				+ finalParameters[4] + " " + finalParameters[5]);
 			highestScore = 0;
-			for (int j = 0; j < 10; j++) {
+			for (int j = 0; j < 3; j++) {
 				highestScore += RunAI(finalParameters, 20, Integer.MAX_VALUE, false);
 			}
-			System.out.printf("Average score of bestVector in generation: %d\n", highestScore/10);
+			System.out.printf("Average score of bestVector in generation: %d\n", highestScore/3);
 			// if(rowsCleared > highestScore) { 
 			
 			
@@ -662,18 +663,18 @@ public class PlayerSkeleton {
 		int sumOfScore =0;
 		randnum = new Random();
 		// double weightFactors[] = {-0.510066, 0.760666, -0.35663, -0.184483};// 0};
-		double weightFactors[] =  {-4.500158825082766, 3.4181268101392694, -3.2178882868487753, -9.348695305445199, -7.899265427351652, -3.3855972247263626};
-		
+		// double weightFactors[] =  {-4.500158825082766, 3.4181268101392694, -3.2178882868487753, -9.348695305445199, -7.899265427351652, -3.3855972247263626};
+		double weightFactors[] = {-2.1472553592987946,5.46883837144299,-1.2945510371937452,-4.521200744605782, -5.510648376902374,-1.1908554239402918};
 		if(args.length > 0){
 			weightFactors = RunEvolution(6);
 			// Returns empty, not yet finished
 			System.out.println("Completed evolution with: " + weightFactors[0] + " " + weightFactors[1] + " " + weightFactors[2] + " " + weightFactors[3]  + " " + weightFactors[4]);
 		}
-		for(int i = 0; i< 5; i++){
+		for(int i = 0; i< 3; i++){
 			sumOfScore+=RunAI(weightFactors, 3000, Integer.MAX_VALUE, false);
 		}
 
-		System.out.println("You have completed an average of "+ sumOfScore/5 +" rows.");
+		System.out.println("You have completed an average of "+ sumOfScore/3 +" rows.");
 	}
 	
 }
