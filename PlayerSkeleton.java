@@ -12,6 +12,9 @@ public class PlayerSkeleton {
 	private static Random randnum;
 	public static boolean runEvoLookahead = false;
 
+
+	
+
 	/**
 	 * Copied from class State. Update the fields 0's and 1's based on current theoretical move 
 	 * Would rather copy a state and use function copiedState.makeMove() but can't make deep copy
@@ -28,6 +31,8 @@ public class PlayerSkeleton {
 	 * @param
 	 * @return
 	 */
+
+
 
 	public Boolean makeTheoreticalMove(final int orient, final int slot, int[][] field, final int[][] pWidth, final int[][] pHeight, 
 									final int[][][] pTop, final int[][][] pBottom, final int[] top, final int nextPiece, int turn) {
@@ -71,6 +76,8 @@ public class PlayerSkeleton {
 	public double newFitnessFunction(final int[][] newField, final int[] newTop, double[] weights){
 		int maxRow = newField.length;
 		int maxCol = newField[0].length;
+
+
 
 
 		double landingHeight = 0; // Done
@@ -392,6 +399,8 @@ public class PlayerSkeleton {
 	 */
 	public int pickMoveWithLookahead(State s, int[][] legalMoves, double[] weightFactors) {
 
+	
+
 		//TreeMap<Double, Integer> scores = new TreeMap<Double, Integer>();
 		//Map<Double, List<Integer>> scores = new Map<Double, int[]>(); 
 		ArrayList<Integer> possibleMoves = new ArrayList<Integer>();
@@ -469,11 +478,28 @@ public class PlayerSkeleton {
 
 		}
 
-		//System.out.println(" previously top values ");
-		/*for(int i = 0 ; i < possibleMoves.size(); i++){
-			System.out.println("** BEFORE RETUNED :  " + possibleMoves.get(i) + " with SCORE " + highestScore);
-		}*/
-	//	return possibleMoves.size() == 0 ? 0 : possibleMoves.get(randnum.nextInt(possibleMoves.size()));
+		// Need this stuff copied from state classto get legal moves from a arbitrary pieace ..
+		int[][][] legalMovesForPiece = new int[State.N_PIECES][][];
+		for(int i = 0; i < State.N_PIECES; i++) {
+			//figure number of legal moves
+			int n = 0;
+			for(int j = 0; j < s.getpOrients()[i]; j++) {
+				//number of locations in this orientation
+				n += State.COLS+1-s.getpWidth()[i][j];
+			}
+			//allocate space
+			legalMovesForPiece[i] = new int[n][2];
+			//for each orientation
+			n = 0;
+			for(int j = 0; j < s.getpOrients()[i]; j++) {
+				//for each slot
+				for(int k = 0; k < State.COLS+1-pWidth[i][j];k++) {
+					legalMovesForPiece[i][n][State.ORIENT] = j;
+					legalMovesForPiece[i][n][State.SLOT] = k;
+					n++;
+				}
+			}
+		}
 
 		Arrays.sort(fitnessScores);
 		int numCandidatesToLookahead = 5;
@@ -490,7 +516,7 @@ public class PlayerSkeleton {
 			// Iterate through all pieces and store the max score of the lookahead
 			for(int j = 0; j < 7; j++){
 				// get legal moves for this piece
-				int[][] legalMovesForLookahead = s.getLegalMovesFromPiece(j);
+				int[][] legalMovesForLookahead = legalMovesForPiece[j];
 
 				IntegerDouble highestScoreForLookaheadPiece = new IntegerDouble(0,0);
 				highestScore = -10000;
@@ -522,33 +548,12 @@ public class PlayerSkeleton {
 				bestScoresForFutureTiles[j] = highestScore;
 			}
 
-			// System.out.println(" best for future tiles ");
-			// for(int f = 0; f < bestSpotsForFutureTiles.length; f++){
-			// 	System.out.println(" temp for future tiles " + bestSpotsForFutureTiles[f].first + " index " + bestSpotsForFutureTiles[f].second); 
-			// }
-
 			// Take the worst of these score and add to out best spots candidate
 			Arrays.sort(bestScoresForFutureTiles);
 			bestSpots[i].first += bestScoresForFutureTiles[0]; // add worst of the set
 
 		}
 
-		// for(int i = 0 ; i < bestSpots.length; i++){
-		// 	System.out.println("BEST score" + bestSpots[i].first + "return BEST val " + bestSpots[i].second);
-		// }
-
-		//System.out.println("returning ..." + (int)bestSpots[bestSpots.length - 1].second);
-
-
-		/*if( possibleMoves.get(0) !=  (int)bestSpots[bestSpots.length - 1].second){
-			System.out.println(" NOT Equal ");
-			System.out.println(" PREVIUOS " + possibleMoves.get(0));
-			System.out.println(" THIS NEW " + (int)bestSpots[bestSpots.length - 1].second);
-		}*/
-
-		//System.out.println(" - ---- ------ - --- - ---");
-		//return possibleMoves.get(0);
-		//return possibleMoves.size() == 0 ? 0 : possibleMoves.get(randnum.nextInt(possibleMoves.size()));
 		Arrays.sort(bestSpots);
 		return (int)bestSpots[bestSpots.length - 1].second;	
 	}
