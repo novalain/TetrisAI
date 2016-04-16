@@ -60,6 +60,120 @@ public class PlayerSkeleton {
 		return true;
 	}
 
+/**
+	 * @param newField The board state used to calculate the fitness score
+	 * @param newTop An array containing the top indices of the new board
+	 * @param weightFactors The weight factors for the heuristic values.
+	 * @return Returns the fitness score of this board state
+	 */
+	public double newFitnessFunction(final int[][] newField, final int[] newTop, double[] weights){
+		int maxRow = newField.length;
+		int maxCol = newField[0].length;
+
+
+		double landingHeight = 0; // Done
+		double rowsCleared = 0; // Done
+		double rowTransitions = 0; // Done
+		double columnTransitions = 0; // Done
+		double numHoles = 0; // Done
+		double wellSums = 0;
+		int moveNumber = -1;
+
+
+		// int lowestTop = -1;
+		
+			// for(int i = 0; i<maxCol; i++) {
+			// 	System.out.printf("%d ", newTop[i]);
+			// }
+			// System.out.println();
+		for(int i = 0; i<maxCol; i++) {
+			for (int j  = newTop[i]-1; j >=0; j--) {
+				if(newField[j][i] == 0) numHoles++;
+			}
+			// System.out.println(Math.max(newTop[i]-1, 0));
+			if(newField[Math.max(newTop[i]-1, 0)][i] > moveNumber) {
+				moveNumber = newField[Math.max(newTop[i]-1, 0)][i];
+				
+				landingHeight = newTop[i];
+			}
+		}
+
+
+		for(int i = 0; i<maxRow; i++) {
+			boolean lastCell = false;
+			boolean currentCell = false;
+			int rowIsClear = 1;
+			for (int j = 0; j<maxCol; j++) {
+				currentCell = false;
+				if(newField[i][j] == 0) {
+					rowIsClear = 0;
+					currentCell = true;
+				}
+				
+				if(lastCell != currentCell) {
+					rowTransitions++;
+				}
+				lastCell = currentCell;
+			}
+			rowsCleared+=rowIsClear;
+			if(currentCell) rowTransitions++;
+		}
+
+		for(int i = 0; i<maxCol; i++) {
+			boolean lastCell = true;
+			boolean currentCell = false;
+			for (int j = 0; j<maxRow-1; j++) {
+				currentCell = (newField[j][i] != 0);
+				// if(!currentCell && newField[j+1][i] !=0) numHoles++;
+				if(lastCell != currentCell) {
+					columnTransitions++;
+				}
+				lastCell = currentCell;
+			}
+			// if(!currentCell) columnTransitions++;
+		}
+
+		for(int i = 1; i<maxCol-1; i++) {
+			for(int j = 0; j < maxRow; j++) {
+				if(newField[j][i] == 0 && newField[j][i-1] != 0 && newField[j][i+1] != 0) {
+					wellSums++;
+					for (int k = j -1; k >=0; k--) {
+						if(newField[k][i] == 0) wellSums++;
+						else break;
+					}
+				}
+			}
+		}
+
+
+		for(int j = 0; j < maxRow; j++) {
+			if(newField[j][0] == 0 && newField[j][1] != 0) {
+				wellSums++;
+				for (int k = j -1; k >=0; k--) {
+					if(newField[k][0] == 0) wellSums++;
+					else break;
+				}
+			}
+			if(newField[j][maxCol-1] == 0 && newField[j][maxCol-2] != 0) {
+				wellSums++;
+				for (int k = j -1; k >=0; k--) {
+					if(newField[k][maxCol-1] == 0) wellSums++;
+					else break;
+				}
+			}
+		}
+		
+		// System.out.println(landingHeight); // Done
+		// System.out.println(rowsCleared); // Done
+		// System.out.println(rowTransitions); // Done
+		// System.out.println(columnTransitions); // Done
+		// System.out.println(numHoles); // Done
+		// System.out.println(wellSums);
+
+		return landingHeight*weights[0] + rowsCleared*weights[1] + rowTransitions*weights[2] + 
+		columnTransitions*weights[3] + numHoles*weights[4] + wellSums*weights[5];
+		
+	}
 	/**
 	 * @param newField The board state used to calculate the fitness score
 	 * @param newTop An array containing the top indices of the new board
@@ -145,10 +259,27 @@ public class PlayerSkeleton {
 			}
 			completeLines += isCompleted;
 		}
+		// System.out.println(completeLines); // Done
+		// System.out.println(numHoles); // Done // Squared
+		// System.out.println(numHolesSq); // Squared // Done
+		// System.out.println(maxHoleHeight); // Squared // Done
+		// System.out.println(maxHoleHeightSq); // Done
+		// System.out.println(maxColumnHeight); //Squares // Done
+		// System.out.println(maxColumnHeightSq); // Done
+		// System.out.println(columnWithHoles); // Done
+		// System.out.println(rowsWithHoles); // Done
+		// System.out.println(totalHeight); // Done
+		// System.out.println(lowestPlayableRow); // Don't know what this is //Have no idea how to do
+		// System.out.println(bumpiness); // Roughness in the paper // Done
+		// System.out.println(maxPitDepth); // Squared // Have no idea how to do
+		// System.out.println(maxPitDepthSq);
+		// System.out.println(slope); // Done
+		// System.out.println(convexity); // Have no idea how to do
 		double score = completeLines*weights[0] + numHoles*weights[1] + Math.pow(numHoles, 2)*weights[2] + maxHoleHeight*weights[3] +
 		Math.pow(maxHoleHeight, 2)*weights[4] + maxColumnHeight*weights[5] + Math.pow(maxColumnHeight, 2)*weights[6] + columnWithHoles*weights[7] +
 		rowsWithHoles*weights[8] + totalHeight*weights[9] + lowestPlayableRow*weights[10] + bumpiness*weights[11] + maxPitDepth*weights[12] + 
 		Math.pow(maxPitDepth,2)*weights[13] + slope*weights[14] + convexity*weights[15];
+		// System.out.println(score);
 		return score;
 		//return totalHeight*weights[0] + completeLines*weights[1] + numHoles*weights[2] + bumpiness*weights[3];
 	
@@ -201,7 +332,7 @@ public class PlayerSkeleton {
 		int field[][] = s.getField();
 		int nextPiece = s.getNextPiece();
 		int turnNumber = s.getTurnNumber();
-		
+		// System.out.println(legalMoves.length);
 		// Go through every possible move
 		for(int i = 0; i < legalMoves.length; i++){
 
@@ -222,7 +353,7 @@ public class PlayerSkeleton {
 				// 	System.out.printf("\n");
 				// }
 				// System.out.printf("\n");
-				double score = fitnessFunction(newField, newTop, weightFactors);
+				double score = newFitnessFunction(newField, newTop, weightFactors);
 				//assert score != brute_force_score;
 
 				/*if(Math.abs(score - brute_force_score) > 0.000000001)
@@ -497,7 +628,7 @@ public class PlayerSkeleton {
 			// }
 			// 
 			for (int i = 0; i < thirtyPercent; i++ ) {
-				// System.out.println("Replacing: " + fitnessP[i].first);
+				System.out.println("Replacing: " + fitnessP[i].first);
 				pEvolve[fitnessP[i].second] = offsprings[i];
 				// System.out.println("Replacing");
 			}
@@ -508,7 +639,7 @@ public class PlayerSkeleton {
 			for (int j = 0; j < 10; j++) {
 				highestScore += RunAI(finalParameters, 20, Integer.MAX_VALUE, false);
 			}
-			System.out.printf("Score of bestVector so far: %d\n", highestScore);
+			System.out.printf("Average score of bestVector in generation: %d\n", highestScore/10);
 			// if(rowsCleared > highestScore) { 
 			
 			
@@ -528,15 +659,21 @@ public class PlayerSkeleton {
 	 * @param args If an argument is passed(Whatever it is) it will run the evolution, otherwise it will run the game
 	 */
 	public static void main(String[] args) {
+		int sumOfScore =0;
 		randnum = new Random();
-		double weightFactors[] = {-0.510066, 0.760666, -0.35663, -0.184483};// 0};
+		// double weightFactors[] = {-0.510066, 0.760666, -0.35663, -0.184483};// 0};
+		double weightFactors[] =  {-4.500158825082766, 3.4181268101392694, -3.2178882868487753, -9.348695305445199, -7.899265427351652, -3.3855972247263626};
 		
 		if(args.length > 0){
-			weightFactors = RunEvolution(16);
+			weightFactors = RunEvolution(6);
 			// Returns empty, not yet finished
 			System.out.println("Completed evolution with: " + weightFactors[0] + " " + weightFactors[1] + " " + weightFactors[2] + " " + weightFactors[3]  + " " + weightFactors[4]);
 		}
-		System.out.println("You have completed "+ RunAI(weightFactors, 1000, Integer.MAX_VALUE, true)+" rows.");
+		for(int i = 0; i< 5; i++){
+			sumOfScore+=RunAI(weightFactors, 3000, Integer.MAX_VALUE, false);
+		}
+
+		System.out.println("You have completed an average of "+ sumOfScore/5 +" rows.");
 	}
 	
 }
