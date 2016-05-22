@@ -2,7 +2,7 @@
 This is a utility-based agent that for every move evaluates the boards state using a utility function based on a linear weighted sum of heuristics.
 
 ### Heuristics 
- The boards state consists of six features which are: 
+ The boards state consists of six heuristics which are: 
 
 * Number of holes
 * Landing height
