@@ -1,6 +1,8 @@
 ##TetrisAI
 This is a utility-based agent that for every move evaluates the boards state using a utility function based on a linear weighted sum of heuristics.
 
+<p><img src="/img/tetris_res.gif" width = "128"/></p>
+
 ### Heuristics 
  The boards state consists of six heuristics which are: 
 
